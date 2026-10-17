@@ -51,7 +51,7 @@ input[type=range]{padding:0;accent-color:var(--c)}
 .lg{list-style:none;padding:0;margin:10px 0 0}.lg li{display:flex;align-items:center;gap:12px;margin:6px 0}.lg svg{flex:0 0 36px;width:36px;height:20px}
 .later{background:var(--c1)!important;color:#fff!important}
 .cd i{font-style:normal;font-size:.6rem;line-height:1;min-height:.7rem;color:var(--c2)}.cd em{font-style:normal;color:var(--c3)}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:20px;font-size:.9rem}
+.toast{position:fixed;z-index:30;max-width:min(90vw,460px);text-align:center;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:20px;font-size:.9rem}
 :focus-visible{outline:2px solid var(--c3);outline-offset:2px}
 .tg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.tl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}.tlh{font-size:.78rem;color:var(--mut)}.tlv{font-size:1.5rem;font-weight:700;line-height:1.3}.br{height:7px;border-radius:4px;background:var(--bg);margin-top:5px;overflow:hidden}.br u{display:block;height:100%}.tlp{font-size:.72rem;color:var(--mut);margin-top:3px}
 .sb{display:flex;height:24px;border-radius:6px;overflow:hidden;margin:8px 0;font-size:.72rem;color:#fff;white-space:nowrap}.sb span{display:grid;place-items:center;min-width:0;overflow:hidden}
@@ -160,7 +160,7 @@ const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,f1=x=>(Math.round(x*10)/
 const pct=l=>{const s=D.s.find(x=>x.id===l.sid);return s?l.hits/s.reps*100:0};
 const uid=()=>Math.random().toString(36).slice(2,9);
 let view='home';
-function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),1500)}
+function toast(t,ms){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.append(d);setTimeout(()=>d.remove(),ms||1500)}
 const catOf=k=>CATS.find(c=>c[0]===k);
 /* ---------- Zeitmessung ---------- */
 const p2=n=>String(n).padStart(2,'0'),tmEl=t=>t?(t.acc||0)+(t.t0?Date.now()-t.t0:0):0;
@@ -182,7 +182,7 @@ setInterval(()=>document.querySelectorAll('.tmv[data-t0]').forEach(e=>e.textCont
 function render(){$('app').innerHTML=head()+'<section class="content">'+(view==='home'?home():view==='cal'?cal():view==='dash'?dashV():view==='wo'?woView():view==='j'?jView():catView(view))+'</section>'+bottomNav()+tmPill()}
 function head(){const names={home:'Dein Training',cal:'Trainingskalender',dash:'Performance',kurz:'Kurzspiel',ann:'Annäherung',trans:'Transportschläge',drive:'Drive',putt:'Putten',fit:'Kraft & Mobilität',wo:'Trainingseinheit',j:'Trainingstagebuch'};return `<header class="topbar"><div class="brand"><span class="brandmark">◈</span><span>FAIRWAY<span class="brandlight"> / TRAINING</span></span></div><div class="tbr"><span class="headerdate">${new Intl.DateTimeFormat('de-AT',{day:'2-digit',month:'short',year:'numeric'}).format(new Date())}</span>${fbBtn()}${acBtn()}</div></header><div class="pagehead"><div class="eyebrow">DEIN PERSÖNLICHER TRAININGSBEREICH</div><h1>${names[view]||'Golf Training'}</h1><p class="sub">${view==='home'?'Trainiere gezielt. Miss deinen Fortschritt. Spiele besser.':view==='dash'?'Deine Entwicklung auf einen Blick.':view==='cal'?'Plane deine Einheiten und bleib am Ball.':view==='j'?'Deine Gedanken zum Training, nur für dich.':view==='wo'?'Übungen aus allen Bereichen zusammenstellen und mit Uhr trainieren.':view==='fit'?'Kraft- und Mobilitätstraining festhalten.':'Übungen entdecken, trainieren und Ergebnisse festhalten.'}</p></div>`}
 function bottomNav(){return `<nav class="bottomnav" aria-label="Hauptnavigation"><button class="navitem ${view==='home'?'active':''}" onclick="go('home')"><span>⌂</span>Start</button><button class="navitem ${view==='wo'?'active':''}" onclick="go('wo')"><span>⏱</span>Training</button><button class="navitem ${CATS.some(c=>c[0]===view)?'active':''}" onclick="go('kurz')"><span>◎</span>Übungen</button><button class="navitem ${view==='cal'?'active':''}" onclick="go('cal')"><span>▦</span>Planung</button><button class="navitem ${view==='j'?'active':''}" onclick="go('j')"><span>✎</span>Tagebuch</button><button class="navitem ${view==='dash'?'active':''}" onclick="go('dash')"><span>▥</span>Analyse</button></nav>`}
-function go(v){if(jOn&&v!=='j')jMic();dStop();view=v;render();scrollTo(0,0)}
+function go(v){dStop();view=v;render();scrollTo(0,0)}
 function stats(k){const S=D.s.filter(s=>s.cat===k),L=D.l.filter(l=>S.some(s=>s.id===l.sid));if(k==='fit')return {n:S.length,h:null,q:null,c:D.l.filter(l=>l.fit).length};return {n:S.length,h:L.length?avg(L.map(pct)):null,q:L.length?avg(L.map(l=>l.q)):null,c:L.length}}
 function home(){const done=D.l.filter(l=>l.d===T(0)).length,up=pNext(),all=D.l.filter(l=>!l.ex),golf=all.filter(l=>!l.fit&&!l.wo),rate=golf.length?Math.round(avg(golf.map(pct))):null;return (D.wo?woPanel(1):'')+`<div class="hero"${D.wo?' style="display:none"':''}><div class="hero-content"><div class="hero-kicker">● DEIN NÄCHSTER SCHRITT</div><h2>Jeder Schlag<br>macht dich besser.</h2><p>Dein Fortschritt beginnt mit der nächsten Trainingseinheit.</p><button class="hero-btn" onclick="woNew()">Trainingseinheit starten <span>↗</span></button></div><div class="hero-art"><span class="hero-ball"></span><span class="hero-ring r1"></span><span class="hero-ring r2"></span><span class="hero-ring r3"></span></div></div><div class="metrics"><div class="metric"><span>Übungen</span><strong>${D.s.length}</strong><small>in deiner Bibliothek</small></div><div class="metric"><span>Einheiten</span><strong>${all.filter(l=>!l.in).length}</strong><small>protokolliert</small></div><div class="metric"><span>Trefferquote</span><strong>${rate===null?'–':rate+'%'}</strong><small>im Durchschnitt</small></div></div><div class="sectionheading"><div><div class="eyebrow">ÜBUNGSBIBLIOTHEK</div><h2>Übungen nach Bereich</h2></div><button class="textlink" onclick="go('dash')">Statistik ansehen ↗</button></div><div class="category-grid">${CATS.map((c,i)=>{const s=stats(c[0]);return `<button class="category-tile cat-${i}" onclick="go('${c[0]}')"><span class="category-icon">${c[2]}</span><span class="category-name">${c[1]}</span><span class="category-meta">${s.n} Übungen · ${s.c} Einheiten</span><span class="category-arrow">↗</span></button>`}).join('')}</div><div class="sectionheading"><div><div class="eyebrow">TRAININGSROUTINE</div><h2>Dein nächstes Training</h2></div></div><div class="next-card"><div class="next-icon">◷</div><div><strong>${up?fitEsc(pTitle(up)):'Bereit für deine nächste Einheit?'}</strong><p>${up?woD(up.d)+' · '+up.t+' Uhr · '+up.dur+' Minuten'+(up.rep?' · ↻ '+pRep(up):''):'Plane deine Übungen im Kalender und behalte deine Routine im Blick.'}</p></div><button onclick="go('cal')">${up?'Ansehen':'Planen'} ↗</button></div><div class="next-card" style="margin-top:12px"><div class="next-icon">✎</div><div><strong>Trainingstagebuch</strong><p>${(D.j||[]).some(e=>e.d===T(0))?'Heute schon notiert. Ergänze deine Gedanken jederzeit.':'Halte deine Gedanken zum Training fest, nur für dich.'}</p></div><button onclick="go('j')">${(D.j||[]).length?'Öffnen':'Schreiben'} ↗</button></div><details class="settings"><summary>Datensicherung & Einstellungen</summary><textarea id="ex" rows="4" placeholder="Export- oder Importdaten"></textarea><button class="btn s" onclick="bak()">Backup als Datei</button><button class="btn s" onclick="ex.value=JSON.stringify(D);ex.select()">Daten exportieren</button><button class="btn s" onclick="imp()">Daten importieren</button><label class="btn s" style="cursor:pointer">Backup-Datei laden<input type="file" accept="application/json,.json" hidden onchange="impFile(this.files[0]);this.value=''"></label><button class="btn s" onclick="noEx()">Beispieldaten entfernen</button></details>`}
 function imp(){try{const j=JSON.parse(V('ex'));if(!j.s||!j.l)throw 0;D=j;D.p=D.p||[];D.sh=D.sh||[];D.rd=D.rd||[];pzEnsure();freeEnsure();save();render();toast('Import fertig')}catch(e){toast('Import fehlgeschlagen')}}
@@ -315,19 +315,19 @@ const FIT_BASE=[
 async function showM(lid,btn){const l=D.l.find(x=>x.id===lid),box=$('md'+lid);btn.remove();for(const m of l.m){const [id,t]=m.split('|');try{const b=await mget(id);if(!b)continue;const u=URL.createObjectURL(b),e=document.createElement(t==='v'?'video':'img');e.src=u;if(t==='v')e.controls=true;else e.alt='Foto';box.append(e)}catch(e){}}}
 /* ---------- Trainingstagebuch ---------- */
 // Einträge in D.j {id,d,txt,t,m:['id|i'|'id|v']}. Der Text wird mit den übrigen Trainingsdaten im eigenen Konto gesichert (golflog, per RLS nur für den Benutzer selbst lesbar), Fotos und Videos bleiben in IndexedDB auf dem Gerät.
-var jq='',jF=null,jFiles=[],jRec=null,jOn=false,jBase='';
+var jq='',jF=null,jFiles=[];
 const JK=K+'.jd',SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 async function mdel(id){const db=await idb();return new Promise(r=>{const t=db.transaction('m','readwrite');t.objectStore('m').delete(id);t.oncomplete=r;t.onerror=r})}
 function jInit(){if(jF)return;try{jF=JSON.parse(localStorage.getItem(JK)||'null')}catch(e){}if(!jF||typeof jF.txt!=='string')jF={id:null,d:T(0),txt:''}}
 function jKeep(){try{if(jF.id||jF.txt)localStorage.setItem(JK,JSON.stringify(jF));else localStorage.removeItem(JK)}catch(e){}}
-function jIn(typed){const t=$('jt'),d=$('jd');if(!t)return;if(typed&&jOn)jMic();jF.txt=t.value;jF.d=d.value||T(0);jKeep()}
+function jIn(typed){const t=$('jt'),d=$('jd');if(!t)return;jF.txt=t.value;jF.d=d.value||T(0);jKeep()}
 const jDate=d=>WD[wdOf(d)].slice(0,2)+', '+woD(d);
 const jMC=m=>{const v=m.filter(x=>x.endsWith('|v')).length,i=m.length-v;return [i?i+(i>1?' Fotos':' Foto'):'',v?v+(v>1?' Videos':' Video'):''].filter(Boolean).join(' · ')};
 function jView(){jInit();const ed=jF.id&&(D.j||[]).find(e=>e.id===jF.id);if(jF.id&&!ed)jF.id=null;
 return `<div class="card jcardx" style="--c:var(--c4)" id="jed"><div class="rowx"><h2>${ed?'Eintrag bearbeiten':'Neuer Eintrag'}</h2>${ed||jF.txt||jFiles.length?`<button class="back" onclick="jCancel()">${ed?'Abbrechen':'Leeren'}</button>`:''}</div>
 <div class="g"><label>Datum<input type="date" id="jd" value="${jF.d}" onchange="jIn()"></label></div>
 <label class="jlab">Deine Gedanken<textarea id="jt" rows="8" placeholder="Wie lief das Training? Was hat funktioniert, woran willst du arbeiten?" oninput="jIn(1)">${fitEsc(jF.txt)}</textarea></label>
-<div class="jbar"><button class="chip jmic${jOn?' on':''}" id="jmic" onclick="jMic()">${jOn?'■ Diktat stoppen':'🎙 Diktieren'}</button><label class="chip jadd">📷 Foto oder Video<input type="file" accept="image/*,video/*" multiple hidden onchange="jAdd(this.files);this.value=''"></label></div>
+<div class="jbar"><button class="chip jmic" id="jmic" onclick="dMic(this,$('jt'))">🎙 Diktieren</button><label class="chip jadd">📷 Foto oder Video<input type="file" accept="image/*,video/*" multiple hidden onchange="jAdd(this.files);this.value=''"></label></div>
 <div class="media jmed" id="jpm">${jPend(ed)}</div>
 <p class="note">🔒 Nur für dich. ${acU?'Der Text wird in deinem Konto gesichert.':'Der Text wird auf diesem Gerät gespeichert (mit Anmeldung auch in deinem Konto).'} Fotos und Videos bleiben auf diesem Gerät.</p>
 <button class="btn" onclick="jSave()">${ed?'Änderungen speichern':'Eintrag speichern'}</button></div>
@@ -336,13 +336,13 @@ function jPend(ed){return (ed?ed.m.map((m,i)=>`<span class="jpf">${m.endsWith('|
 function jAdd(fs){for(const f of fs||[]){const v=/^video/.test(f.type);jFiles.push({f,v,u:v?'':URL.createObjectURL(f)})}const p=$('jpm');if(p)p.innerHTML=jPend((D.j||[]).find(e=>e.id===jF.id))}
 function jFDel(i){const x=jFiles.splice(i,1)[0];if(x&&x.u)URL.revokeObjectURL(x.u);const p=$('jpm');if(p)p.innerHTML=jPend((D.j||[]).find(e=>e.id===jF.id))}
 async function jMDel(eid,m){const e=(D.j||[]).find(x=>x.id===eid);if(!e||!confirm('Dieses Medium aus dem Eintrag entfernen?'))return;e.m=e.m.filter(x=>x!==m);e.t=Date.now();save();mdel(m.split('|')[0]).catch(()=>{});render()}
-function jReset(){if(jOn)jMic();jFiles.forEach(x=>x.u&&URL.revokeObjectURL(x.u));jFiles=[];jF={id:null,d:T(0),txt:''};jKeep()}
+function jReset(){if(dOn&&dEl&&dEl.id==='jt')dStop();jFiles.forEach(x=>x.u&&URL.revokeObjectURL(x.u));jFiles=[];jF={id:null,d:T(0),txt:''};jKeep()}
 function jCancel(){if(!jF.id&&(jF.txt||jFiles.length)&&!confirm('Entwurf verwerfen?'))return;jReset();render()}
-async function jSave(){jIn();const txt=jF.txt.trim();let e=jF.id&&(D.j||[]).find(x=>x.id===jF.id);if(!txt&&!jFiles.length&&!(e&&e.m.length))return toast('Schreib zuerst etwas');if(jOn)jMic();
+async function jSave(){jIn();const txt=jF.txt.trim();let e=jF.id&&(D.j||[]).find(x=>x.id===jF.id);if(!txt&&!jFiles.length&&!(e&&e.m.length))return toast('Schreib zuerst etwas');
 const m=[];let bad=0;for(const x of jFiles){const id='j'+uid()+uid();try{await mput(id,x.f);m.push(id+'|'+(x.v?'v':'i'))}catch(er){bad++}}
 D.j=D.j||[];if(e){e.txt=txt;e.d=jF.d;e.m=e.m.concat(m);e.t=Date.now()}else D.j.push({id:uid(),d:jF.d,txt,t:Date.now(),m});
 jReset();save();render();toast(bad?bad+' Medien konnten nicht gespeichert werden':'Eintrag gespeichert')}
-function jEdit(id){const e=(D.j||[]).find(x=>x.id===id);if(!e)return;if(jOn)jMic();jFiles=[];jF={id,d:e.d,txt:e.txt};jKeep();render();const t=$('jed');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}
+function jEdit(id){const e=(D.j||[]).find(x=>x.id===id);if(!e)return;jFiles=[];jF={id,d:e.d,txt:e.txt};jKeep();render();const t=$('jed');if(t)t.scrollIntoView({behavior:'smooth',block:'start'})}
 async function jDel(id){const e=(D.j||[]).find(x=>x.id===id);if(!e||!confirm(`Eintrag vom ${woD(e.d)} löschen?`))return;D.j=D.j.filter(x=>x.id!==id);if(jF.id===id)jReset();save();for(const m of e.m)mdel(m.split('|')[0]).catch(()=>{});render();toast('Eintrag gelöscht')}
 function jList(){const L=(D.j||[]).slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.t-a.t);if(!L.length)return '<p class="sub">Noch keine Einträge. Schreib deinen ersten Gedanken zum Training auf.</p>';
 const w=jq.trim().toLowerCase().split(/\s+/).filter(Boolean),hit=e=>{const s=(e.txt+' '+e.d+' '+woD(e.d)+' '+jDate(e.d)).toLowerCase();return w.every(x=>s.includes(x))},R=w.length?L.filter(hit):L;
@@ -350,30 +350,27 @@ const re=w.length?new RegExp('('+w.map(x=>fitEsc(x).replace(/[.*+?^${}()|[\]\\]/
 return (w.length?`<p class="rowx">${R.length} von ${L.length} Einträgen</p>`:'')+(R.length?R.map(e=>`<div class="log jent"><div class="rowx"><b style="color:var(--ink)">${hl(fitEsc(jDate(e.d)))}</b><span><button class="chip" onclick="jEdit('${e.id}')">Bearbeiten</button> <button class="chip" onclick="jDel('${e.id}')" aria-label="Löschen">✕</button></span></div>${e.txt?`<div class="jtxt">${hl(fitEsc(e.txt))}</div>`:''}${e.m.length?`<button class="chip" onclick="jShowM('${e.id}',this)">${jMC(e.m)} anzeigen</button><div class="media" id="jm${e.id}"></div>`:''}</div>`).join(''):'<p class="sub">Nichts gefunden.</p>')}
 async function jShowM(id,btn){const e=(D.j||[]).find(x=>x.id===id),box=$('jm'+id);if(!e||!box)return;btn.remove();let miss=0;for(const m of e.m){const [k,t]=m.split('|');let b=null;try{b=await mget(k)}catch(er){}if(!b){miss++;continue}const u=URL.createObjectURL(b),el=document.createElement(t==='v'?'video':'img');el.src=u;if(t==='v'){el.controls=true;el.playsInline=true}else el.alt='Foto';box.append(el)}
 if(miss){const p=document.createElement('p');p.className='note';p.textContent=miss+(miss>1?' Medien sind':' Medium ist')+' nicht auf diesem Gerät gespeichert.';box.append(p)}}
-// Diktieren über die Spracherkennung des Browsers (Safari/Chrome). Ohne Unterstützung bleibt die Diktier-Taste der Handy-Tastatur.
 const jJoin=(a,b)=>{b=b.trim();if(!b)return a;if(!a||/[.!?]\s*$|\n\s*$/.test(a))b=b[0].toUpperCase()+b.slice(1);return !a?b:/\s$/.test(a)?a+b:a+' '+b};
-// Diktieren in den Notizfeldern der Übungen: jedes Feld mit der Beschriftung „Notiz“ bekommt eine Mikrofon-Taste.
-var dR=null,dEl=null,dOn=false;
-function dDraw(){document.querySelectorAll('.dmic').forEach(b=>{const on=dOn&&b.previousElementSibling===dEl;b.classList.toggle('on',on);b.textContent=on?'■':'🎙';b.setAttribute('aria-label',on?'Diktat stoppen':'Notiz diktieren')})}
-function dStop(){if(!dOn)return;dOn=false;try{dR&&dR.stop()}catch(e){}if(dEl)dEl.dispatchEvent(new Event('change',{bubbles:true}));dDraw()}
-function dMic(b){const el=b.previousElementSibling;if(dOn){const same=dEl===el;dStop();if(same)return}if(jOn)jMic();if(!SR){toast('Diktieren: bitte die Mikrofon-Taste der Tastatur verwenden');el.focus();return}dEl=el;dOn=true;dDraw();dListen()}
-function dListen(){const r=new SR(),el=dEl;dR=r;r.lang='de-AT';r.continuous=true;r.interimResults=true;const base=el.value;
-r.onresult=e=>{if(dR!==r)return;if(!document.contains(el)){dStop();return}let fin='',tmp='';for(let i=0;i<e.results.length;i++){const x=e.results[i];if(x.isFinal)fin+=' '+x[0].transcript;else tmp+=' '+x[0].transcript}el.value=jJoin(jJoin(base,fin),tmp);el.scrollLeft=el.scrollWidth};
-r.onerror=e=>{if(/not-allowed|service-not-allowed|audio-capture/.test(e.error)){dStop();toast(e.error==='audio-capture'?'Kein Mikrofon gefunden':'Mikrofon nicht erlaubt. Alternativ die Diktier-Taste der Tastatur verwenden')}};
-r.onend=()=>{if(dR!==r)return;if(dOn&&document.contains(el))setTimeout(()=>{if(dOn&&dEl===el)try{dListen()}catch(er){dStop()}},150);else dStop()};
-try{r.start()}catch(e){dStop();toast('Diktieren nicht möglich')}}
-function dDeco(){document.querySelectorAll('label').forEach(l=>{const f=l.firstChild;if(!f||f.nodeType!==3||f.textContent.trim()!=='Notiz'||l.querySelector('.dmic'))return;const el=l.querySelector('input:not([type]),input[type=text],textarea');if(!el)return;l.classList.add('dlab');const b=document.createElement('button');b.type='button';b.className='dmic';b.onclick=e=>{e.preventDefault();dMic(b)};el.after(b)});if(dOn&&!document.contains(dEl))dStop();dDraw()}
+// Diktieren über die Spracherkennung des Browsers, im Tagebuch und in jedem Feld mit der Beschriftung „Notiz“.
+// Pro Antippen eine Aufnahme ohne automatischen Neustart: Safari am iPhone startet nur nach einem Tippen zuverlässig.
+var dR=null,dEl=null,dBtn=null,dOn=false,dGot=false,dWd=null;
+const dHint=m=>m+' Tipp: Die Mikrofon-Taste der iPhone-Tastatur funktioniert immer.';
+const dCur=()=>dEl&&!document.contains(dEl)&&dEl.id?$(dEl.id)||dEl:dEl;
+function dDraw(){document.querySelectorAll('.dmic,#jmic').forEach(b=>{const on=dOn&&(b.id==='jmic'?!!dEl&&dEl.id==='jt':b.previousElementSibling===dEl);b.classList.toggle('on',on);if(b.id==='jmic')b.textContent=on?'■ Diktat stoppen':'🎙 Diktieren';else{b.textContent=on?'■':'🎙';b.setAttribute('aria-label',on?'Diktat stoppen':'Notiz diktieren')}})}
+function dStop(msg){clearTimeout(dWd);if(!dOn)return;dOn=false;const r=dR;try{r&&r.stop()}catch(e){}setTimeout(()=>{try{r&&r.abort()}catch(e){}},1500);const el=dCur();if(el)el.dispatchEvent(new Event('change',{bubbles:true}));dDraw();if(msg)toast(msg,4500)}
+function dMic(b,el){el=el||b.previousElementSibling;if(dOn){const same=dEl===el||b===dBtn;dStop();if(same)return}
+if(!SR){toast(dHint('Diktieren wird von diesem Browser nicht unterstützt.'),4500);el.focus();return}
+let r;try{r=new SR()}catch(e){toast(dHint('Diktieren nicht möglich.'),4500);return}
+dR=r;dEl=el;dBtn=b;dOn=true;dGot=false;r.lang='de-DE';r.continuous=true;r.interimResults=true;const base=el.value;
+r.onresult=e=>{if(dR!==r)return;dGot=true;clearTimeout(dWd);const t=dCur();if(!t)return;let fin='',tmp='';for(let i=0;i<e.results.length;i++){const x=e.results[i];if(x.isFinal)fin+=' '+x[0].transcript;else tmp+=' '+x[0].transcript}
+t.value=jJoin(jJoin(base,fin),tmp);t.scrollTop=t.scrollHeight;t.scrollLeft=t.scrollWidth;t.dispatchEvent(new Event('input',{bubbles:true}))};
+r.onerror=e=>{if(dR!==r)return;const m={'not-allowed':'Mikrofon oder Spracherkennung ist nicht erlaubt.','service-not-allowed':'Spracherkennung ist auf diesem Gerät nicht erlaubt (Siri & Diktieren aktivieren).','no-speech':'Keine Sprache erkannt.','audio-capture':'Kein Mikrofon gefunden.','network':'Für die Spracherkennung ist Internet nötig.','language-not-supported':'Deutsch wird von der Spracherkennung nicht unterstützt.'}[e.error];dStop(e.error==='aborted'?'':dHint(m||'Diktat-Fehler ('+e.error+').'))};
+r.onend=()=>{if(dR===r&&dOn)dStop(dGot?'':dHint('Keine Sprache erkannt.'))};
+dWd=setTimeout(()=>{if(dOn&&dR===r&&!dGot)dStop(dHint('Keine Sprache erkannt.'))},10000);
+try{r.start()}catch(e){dStop(dHint('Diktieren nicht möglich.'))}dDraw()}
+function dDeco(){document.querySelectorAll('label').forEach(l=>{const f=l.firstChild;if(!f||f.nodeType!==3||f.textContent.trim()!=='Notiz'||l.querySelector('.dmic'))return;const el=l.querySelector('input:not([type]),input[type=text],textarea');if(!el)return;l.classList.add('dlab');const b=document.createElement('button');b.type='button';b.className='dmic';b.onclick=e=>{e.preventDefault();dMic(b)};el.after(b)});if(dOn){const c=dCur();if(!c||!document.contains(c))dStop();else dEl=c}dDraw()}
+document.addEventListener('input',e=>{if(e.isTrusted&&dOn&&e.target===dCur())dStop()},true);
 new MutationObserver(()=>{clearTimeout(dDeco.t);dDeco.t=setTimeout(dDeco,30)}).observe(document.body,{childList:true,subtree:true});
-function jMicDraw(){const b=$('jmic');if(b){b.className='chip jmic'+(jOn?' on':'');b.textContent=jOn?'■ Diktat stoppen':'🎙 Diktieren'}}
-function jMic(){if(jOn){jOn=false;try{jRec&&jRec.stop()}catch(e){}jMicDraw();return}dStop();
-if(!SR){toast('Diktieren: bitte die Mikrofon-Taste der Tastatur verwenden');const t=$('jt');if(t)t.focus();return}
-jOn=true;jMicDraw();jListen()}
-function jListen(){const r=new SR();jRec=r;r.lang='de-AT';r.continuous=true;r.interimResults=true;jBase=($('jt')||{}).value||jF.txt;
-r.onresult=e=>{if(jRec!==r)return;let fin='',tmp='';for(let i=0;i<e.results.length;i++){const x=e.results[i];if(x.isFinal)fin+=' '+x[0].transcript;else tmp+=' '+x[0].transcript}
-jF.txt=jJoin(jJoin(jBase,fin),tmp);const t=$('jt');if(t){t.value=jF.txt;t.scrollTop=t.scrollHeight}jKeep()};
-r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){jOn=false;jMicDraw();toast('Mikrofon nicht erlaubt. Alternativ die Diktier-Taste der Tastatur verwenden')}else if(e.error==='audio-capture'){jOn=false;jMicDraw();toast('Kein Mikrofon gefunden')}};
-r.onend=()=>{if(jRec!==r)return;if(jOn&&view==='j')setTimeout(()=>{if(jOn)try{jListen()}catch(er){jOn=false;jMicDraw()}},150);else{jOn=false;jMicDraw()}};
-try{r.start()}catch(e){jOn=false;jMicDraw();toast('Diktieren nicht möglich')}}
 /* ---------- Skizzen ---------- */
 const X={ink:'var(--ink)',mut:'var(--mut)',g:'var(--c2)',o:'var(--c1)',b:'var(--c3)',p:'var(--c4)',red:'#d64545'};
 const tx=(x,y,t,a='middle',s=11,f=X.mut,w='normal')=>`<text x="${x}" y="${y}" text-anchor="${a}" font-size="${s}" font-weight="${w}" fill="${f}">${t}</text>`;
