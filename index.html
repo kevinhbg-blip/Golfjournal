@@ -533,7 +533,7 @@ function tapPlot(e){const sv=e.currentTarget,p=sv.createSVGPoint();p.x=e.clientX
 function buildAdd(){let o=$('ov2');if(!o){o=document.createElement('div');o.id='ov2';o.className='ov';o.onclick=e=>{if(e.target===o)o.remove()};document.body.append(o)}
 const a=ad,c=a.cat;
 let h=`<div class="mod" style="--c:${DD}"><button class="x" onclick="$('ov2').remove()" aria-label="Schließen">✕</button><h2>${NM[c]} erfassen</h2><div class="g"><label>Schläger<select onchange="ad.club=this.value">${ENT[c].map(x=>`<option${x===a.club?' selected':''}>${x}</option>`).join('')}</select></label>`;
-if(c!=='drive')h+=`<label>${c==='putt'?'Puttlänge (m)':c==='app'?'Zieldistanz (m)':'Distanz (m, max. 40)'}<input type="number" inputmode="decimal" value="${a.dist}" ${c==='chip'?'max="40" ':''}onchange="ad.dist=+this.value||0;adRef()"></label>`;
+if(c!=='drive')h+=`<label>${c==='putt'?'Puttlänge (m)':c==='app'?'Zieldistanz (m)':'Distanz (m, max. 40)'}<input type="number" inputmode="decimal" value="${a.dist}" ${c==='chip'?'max="40" ':''}onchange="ad.dist=+this.value||0;adRef()"></label>`+(c==='putt'?'':`<button class="btn s" onclick="openFM('ad')">Entfernung messen</button>`);
 h+='</div>';
 if(c==='putt')h+=`<div class="g"><button class="btn${a.made?'':' s'}" onclick="ad.made=1;buildAdd()">Eingelocht</button><button class="btn${a.made?' s':''}" onclick="ad.made=0;buildAdd()">Verfehlt</button></div>`;
 else{h+=`<p class="sub" style="margin-top:10px">Tippe dorthin, wo der Ball gelandet ist.${c==='drive'?' Mitte = Fairwaymitte, oben = weiter.':' Die Fahne ist in der Mitte, oben = zu lang.'}</p><div id="adp" class="skw">${adPlot()}</div><p id="adi" class="sub">${adInfo()}</p>`;
@@ -548,6 +548,69 @@ for(let j=0;j<3;j++){const cl=ENT.app[Math.floor(r()*7)],dist=AD[cl],z=Math.max(
 for(let i=0;i<4;i++){const bun=r()<.15;P('chip',{d,club:ENT.chip[Math.floor(r()*4)],dist:Math.round(12+r()*26),lat:+(g()*2.4*q).toFixed(1),dep:+(g()*2.4*q).toFixed(1),bun:bun?1:0,ud:r()<(bun?.35:.5)/q?1:0})}
 for(let i=0;i<8;i++){const dist=+(.6+r()*9).toFixed(1);P('putt',{d,club:'Putter',dist,made:r()<Math.min(.97,1.1*Math.exp(-dist/4)/Math.sqrt(q))?1:0})}}
 for(let off=5;off<84;off+=14){const q=1+off/170;D.rd.push({id:uid(),d:T(off),holes:18,putts:Math.round(31+q*2+g()),pen:Math.max(0,Math.round(q+g()*.8)),rec:Math.max(0,Math.round(1.5/q+g()*.8)),bun:Math.max(0,Math.round(2+g())),ex:1})}}
+/* ===== Entfernung zur Fahne messen (Foto vom Ball aus, Fahnenstange als Maßstab) ===== */
+/* Lochkamera: Winkel zwischen Fuß und Spitze der Stange; Stange H, Handy in Höhe h, horizontale Distanz D.
+   theta = atan((H-h)/D) + atan(h/D), D per Bisektion. Brennweite (Kleinbild) aus EXIF oder gewählt. */
+let fm=null;
+const FML=[['auto','Automatisch aus dem Foto'],['13','0,5x (13 mm)'],['24','1x (24 mm, ab iPhone 15 Pro)'],['26','1x (26 mm, ältere iPhones)'],['48','2x (48 mm)'],['52','2x (52 mm)'],['77','3x (77 mm)'],['120','5x (120 mm)']],FMC=['#ff4d4d','#3fa9ff'];
+function fmSet(){if(!D.fm)D.fm={H:2.13,h:1.4,lens:'auto'};return D.fm}
+function fmExif(buf){const v=new DataView(buf);if(v.getUint16(0)!==0xFFD8)return null;let o=2;
+while(o<v.byteLength-4){const m=v.getUint16(o),len=v.getUint16(o+2);if(m===0xFFE1&&v.getUint32(o+4)===0x45786966)return fmTiff(v,o+10);if((m&0xFF00)!==0xFF00)break;o+=2+len}return null}
+function fmTiff(v,t){const le=v.getUint16(t)===0x4949,u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le),out={};
+const ifd=(p,cb)=>{const n=u16(p);for(let i=0;i<n;i++){const e=p+2+i*12;cb(u16(e),u32(e+4),e+8)}};
+const str=(n,vo)=>{const p=n>4?t+u32(vo):vo;let s='';for(let i=0;i<n-1;i++)s+=String.fromCharCode(v.getUint8(p+i));return s.trim()};
+let ex=null;ifd(t+u32(t+4),(tag,n,vo)=>{if(tag===0x0110)out.model=str(n,vo);if(tag===0x8769)ex=u32(vo)});
+if(ex!=null)ifd(t+ex,(tag,n,vo)=>{if(tag===0xA405)out.f35=u16(vo);if(tag===0xA434)out.lens=str(n,vo)});return out}
+function openFM(tgt){const s=fmSet();fm={tgt,img:null,W:0,H:0,ef:null,et:'',pts:[null,null],act:0,R:240,lens:s.lens};fmUI()}
+function fmClose(){if(fm&&fm.url)URL.revokeObjectURL(fm.url);fm=null;const o=$('ov4');if(o)o.remove()}
+function fmFile(f){if(!f)return;const r=new FileReader();r.onload=()=>{let ex=null;try{ex=fmExif(r.result)}catch(e){}
+fm.ef=ex&&ex.f35?ex.f35:null;fm.et=ex?[ex.model,ex.lens].filter(Boolean).join(' · '):'';if(fm.url)URL.revokeObjectURL(fm.url);fm.url=URL.createObjectURL(f);
+const im=new Image();im.onload=()=>{fm.img=im;fm.W=im.naturalWidth;fm.H=im.naturalHeight;fm.pts=[null,null];fm.act=0;fm.R=Math.round(Math.max(fm.W,fm.H)/16);fm.ne=0;if(!fm.ef&&fm.lens==='auto'){fm.lens='24';fm.ne=1}fmUI()};
+im.onerror=()=>toast('Das Foto lässt sich nicht öffnen');im.src=fm.url};r.readAsArrayBuffer(f)}
+const fmF35=()=>fm.lens==='auto'?(fm.ef||24):+fm.lens,fmFpx=()=>fmF35()*Math.hypot(fm.W,fm.H)/Math.hypot(36,24);
+const fmAng=(d,H,h)=>Math.atan((H-h)/d)+Math.atan(h/d);
+function fmSolve(th,H,h){let lo=.5,hi=500;if(fmAng(hi,H,h)>th)return hi;for(let i=0;i<80;i++){const m=(lo+hi)/2;if(fmAng(m,H,h)>th)lo=m;else hi=m}return (lo+hi)/2}
+function fmTheta(){const [a,b]=fm.pts,f=fmFpx(),cx=fm.W/2,cy=fm.H/2,u=[a[0]-cx,a[1]-cy,f],v=[b[0]-cx,b[1]-cy,f];return Math.acos(Math.min(1,(u[0]*v[0]+u[1]*v[1]+u[2]*v[2])/Math.hypot(...u)/Math.hypot(...v)))}
+function fmCalc(){if(!fm.img||!fm.pts[0]||!fm.pts[1])return null;const s=fmSet(),th=fmTheta(),e=2/fmFpx(),[a,b]=fm.pts;
+return {th,D:fmSolve(th,s.H,s.h),lo:fmSolve(th+e,s.H,s.h),hi:fmSolve(Math.max(1e-5,th-e),s.H,s.h),px:Math.round(Math.hypot(a[0]-b[0],a[1]-b[1])),tilt:Math.abs(Math.atan2(b[0]-a[0],a[1]-b[1])*180/Math.PI)}}
+function fmUI(){let o=$('ov4');if(!o){o=document.createElement('div');o.id='ov4';o.className='ov';document.body.append(o)}const s=fmSet();
+let h=`<div class="mod" style="--c:${DD}"><button class="x" onclick="fmClose()" aria-label="Schließen">✕</button><h2>Entfernung messen</h2>`;
+h+=`<p class="sub">Stell dich an den Ball und fotografiere die Fahne, Handy aufrecht auf Brusthöhe. Ab 25 m hilft der 2x- oder 3x-Zoom. Fuß und Spitze der Stange müssen gut sichtbar sein.</p><div class="g"><label>Foto aufnehmen<input type="file" accept="image/*" capture="environment" onchange="fmFile(this.files[0])"></label><label>Foto aus der Mediathek<input type="file" accept="image/*" onchange="fmFile(this.files[0])"></label></div>`;
+if(fm.img){h+=`<p class="sub">${fm.W} × ${fm.H} Pixel${fm.et?' · '+fitEsc(fm.et):''} · Brennweite ${fmF35()} mm ${fm.ne?'(nicht im Foto gefunden, unter Einstellungen prüfen)':fm.lens==='auto'?'aus dem Foto':'(gewählt)'}</p>
+<div class="category-switch" style="margin:10px 0"><button class="chip" aria-pressed="${!fm.act}" onclick="fmAct(0)">Fuß setzen</button><button class="chip" aria-pressed="${!!fm.act}" onclick="fmAct(1)">Spitze setzen</button></div>
+<p class="sub" id="fmh">${fm.act?'Tippe auf die Spitze der Stange, ganz oben über der Flagge.':'Tippe auf den Fuß der Fahne, dort wo die Stange im Loch verschwindet.'} Danach in der Lupe genau auf den Punkt tippen.</p>
+<canvas id="fmc" onclick="fmTap(event)" style="display:block;width:100%;max-width:560px;margin:0 auto;border-radius:10px;touch-action:manipulation"></canvas>
+<canvas id="fml" onclick="fmLTap(event)" style="display:block;width:100%;max-width:360px;margin:10px auto 0;border-radius:10px;background:#000;touch-action:manipulation"></canvas>
+<div class="g"><button class="btn s" onclick="fmZoom(2)">Lupe −</button><button class="btn s" onclick="fmZoom(.5)">Lupe +</button></div>
+<div id="fmr"></div>`}
+h+=`<details${fm.img?'':' open'}><summary>Einstellungen</summary><div class="g"><label>Objektiv<select onchange="fm.lens=this.value;fm.ne=0;D.fm.lens=this.value;save();fmUI()">${FML.map(x=>`<option value="${x[0]}"${x[0]===fm.lens?' selected':''}>${x[1]}</option>`).join('')}</select></label><label>Stangenhöhe (m)<input type="number" step="0.01" inputmode="decimal" value="${s.H}" onchange="D.fm.H=+this.value||2.13;save();fmRes()"></label><label>Handyhöhe (m)<input type="number" step="0.05" inputmode="decimal" value="${s.h}" onchange="D.fm.h=+this.value||1.4;save();fmRes()"></label><label>Bekannte Distanz (m)<input id="fmk" type="number" step="0.5" inputmode="decimal" placeholder="zum Kalibrieren"></label></div><button class="btn s" onclick="fmCal()">Stangenhöhe aus bekannter Distanz berechnen</button><p class="sub">Die Standardhöhe ist 2,13 m. Misst die App auf deiner Range immer etwas zu kurz oder zu lang, miss eine Fahne mit bekannter Distanz und lass die Stangenhöhe daraus berechnen.</p></details></div>`;
+o.innerHTML=h;if(fm.img){fmDraw();fmLoupe();fmRes()}}
+function fmAct(i){fm.act=i;fmUI()}
+function fmTap(e){const r=e.currentTarget.getBoundingClientRect(),k=fm.W/r.width;fm.pts[fm.act]=[(e.clientX-r.left)*k,(e.clientY-r.top)*k];fmDraw();fmLoupe();fmRes()}
+function fmLTap(e){const p=fm.pts[fm.act];if(!p)return;const r=e.currentTarget.getBoundingClientRect(),R=fm.R;fm.pts[fm.act]=[p[0]-R/2+(e.clientX-r.left)/r.width*R,p[1]-R/2+(e.clientY-r.top)/r.height*R];fmDraw();fmLoupe();fmRes()}
+function fmZoom(k){fm.R=Math.max(24,Math.min(Math.max(fm.W,fm.H),Math.round(fm.R*k)));fmDraw();fmLoupe()}
+function fmDraw(){const c=$('fmc');if(!c)return;const w=c.clientWidth||500,dpr=devicePixelRatio||1,h=Math.round(w*fm.H/fm.W);c.width=w*dpr;c.height=h*dpr;c.style.height=h+'px';
+const x=c.getContext('2d');x.scale(dpr,dpr);x.drawImage(fm.img,0,0,w,h);const k=w/fm.W,[a,b]=fm.pts;
+if(a&&b){x.strokeStyle='#fff';x.lineWidth=1.5;x.setLineDash([4,3]);x.beginPath();x.moveTo(a[0]*k,a[1]*k);x.lineTo(b[0]*k,b[1]*k);x.stroke();x.setLineDash([])}
+fm.pts.forEach((p,i)=>{if(!p)return;x.strokeStyle=FMC[i];x.lineWidth=2.5;x.beginPath();x.arc(p[0]*k,p[1]*k,9,0,7);x.stroke()});
+const p=fm.pts[fm.act];if(p){x.strokeStyle='#fff';x.lineWidth=1;x.strokeRect((p[0]-fm.R/2)*k,(p[1]-fm.R/2)*k,fm.R*k,fm.R*k)}}
+function fmLoupe(){const c=$('fml');if(!c)return;const w=c.clientWidth||360,dpr=devicePixelRatio||1;c.width=w*dpr;c.height=w*dpr;c.style.height=w+'px';
+const x=c.getContext('2d');x.scale(dpr,dpr);x.imageSmoothingEnabled=false;const p=fm.pts[fm.act];
+if(!p){x.fillStyle='#fff';x.globalAlpha=.6;x.font='15px sans-serif';x.textAlign='center';x.fillText('Lupe: tippe oben ins Foto',w/2,w/2);return}
+const R=fm.R,sx=p[0]-R/2,sy=p[1]-R/2,k=w/R;x.drawImage(fm.img,sx,sy,R,R,0,0,w,w);
+fm.pts.forEach((q,i)=>{if(!q)return;const X=(q[0]-sx)*k,Y=(q[1]-sy)*k;if(X<-20||Y<-20||X>w+20||Y>w+20)return;x.strokeStyle=FMC[i];x.lineWidth=1.5;x.beginPath();
+[[-18,0,-4,0],[4,0,18,0],[0,-18,0,-4],[0,4,0,18]].forEach(l=>{x.moveTo(X+l[0],Y+l[1]);x.lineTo(X+l[2],Y+l[3])});x.stroke()})}
+function fmRes(){const e=$('fmr');if(!e)return;const r=fmCalc();
+if(!r){e.innerHTML=`<p class="sub">${fm.pts[0]?'Spitze fehlt noch.':'Fuß fehlt noch.'}</p>`;return}
+const st=[10,20,30,40].reduce((p,s)=>Math.abs(s-r.D)<Math.abs(p-r.D)?s:p,10),hints=[];
+if(r.tilt>8)hints.push(`Die Stange steht im Bild ${Math.round(r.tilt)}° schief. Handy gerade halten.`);if(r.px<60)hints.push('Die Stange ist klein im Bild. Mit 2x oder 3x wird es genauer.');
+e.innerHTML=`<div class="tl" style="margin-top:12px"><div class="tlv">${f1(r.D)} m</div><p class="sub">Stange ${r.px} Pixel · bei ±2 Pixel Tippfehler ${f1(r.lo)} bis ${f1(r.hi)} m · nächste Stufe ${st} m</p>${hints.map(t=>`<p class="sub">${t}</p>`).join('')}</div>`+
+(fm.tgt?`<button class="btn" onclick="fmUse()">${f1(Math.round(r.D*2)/2)} m übernehmen</button>`:'')}
+function fmCal(){const r=fmCalc(),k=parseFloat(String(($('fmk')||{}).value||'').replace(',','.'));if(!r)return toast('Erst Fuß und Spitze markieren');if(!(k>0))return toast('Bekannte Distanz eintragen');
+const s=fmSet(),H=s.h+k*Math.tan(r.th-Math.atan(s.h/k));if(!(H>1&&H<4))return toast('Ergibt keine sinnvolle Stangenhöhe, Punkte prüfen');s.H=Math.round(H*100)/100;save();toast('Stangenhöhe '+f1(s.H)+' m');fmUI()}
+function fmUse(){const r=fmCalc();if(!r)return;const d=Math.round(r.D*2)/2,t=fm.tgt;fmClose();
+if(t==='ad'&&ad){ad.dist=d;buildAdd();if(ad.cat==='chip'&&d>40)toast('Über 40 m, eher eine Annäherung')}
+else if(t==='pa'&&pa){pa.dist=d;paUI()}toast('Distanz '+f1(d)+' m übernommen')}
 /* ===== Foto-Auswertung (Bälle zählen, Seitenansicht mit Perspektive) ===== */
 let pa=null;
 const PAC={weiss:'Weiß',gelb:'Gelb',orange:'Orange',pink:'Pink'},PAF={'1':.722,'0.5':.361,'2':1.444},PAU={r:[1,0],l:[-1,0],a:[0,1],t:[0,-1]};
@@ -609,7 +672,7 @@ else if(p.step==='v')h+=`<video id="pav" src="${p.vurl}" playsinline muted contr
 else{h+='<div class="skw"><canvas id="pac" onclick="paTap(event)"></canvas></div>';
 if(p.step===1)h+=`<p class="sub">Tippe auf den Fuß der Fahne (dort, wo sie im Boden steckt).</p><div class="g"><label>Kamerahöhe (m)<input type="number" step="0.05" value="${p.h}" inputmode="decimal" onchange="pa.h=+this.value||1.4;paCamUp()"></label><label>Kamera<select onchange="pa.fz=this.value;paCamUp()"><option value="1"${p.fz==='1'?' selected':''}>1x (Standard)</option><option value="0.5"${p.fz==='0.5'?' selected':''}>0,5x (Weitwinkel)</option><option value="2"${p.fz==='2'?' selected':''}>2x</option></select></label><label class="w">Abstand zur Fahne: <output id="pad">${p.D}</output> m<input type="range" min="2" max="8" step="0.1" value="${p.D}" oninput="$('pad').textContent=this.value;pa.D=+this.value;paCamUp()"></label><div class="w">${paDirSel()}</div></div><p id="pai" class="sub"></p>${p.cam?'<button class="btn" onclick="paGo(2)">Weiter: Bälle erkennen</button>':''}`;
 else if(p.step===2)h+=`<div class="g"><label>Ballfarbe<select onchange="pa.col=this.value;paRun()">${Object.entries(PAC).map(([k,v])=>`<option value="${k}"${k===p.col?' selected':''}>${v}</option>`).join('')}</select></label><label>Helligkeit (weiß)<input type="range" min="120" max="250" value="${p.thr}" onchange="pa.thr=+this.value;paRun()"></label><label class="w">Oberen Bildrand ignorieren: <output id="pat">${p.top}</output> %<input type="range" min="0" max="80" value="${p.top}" oninput="$('pat').textContent=this.value" onchange="pa.top=+this.value;paRun()"></label></div><p id="pai" class="sub"></p><p id="paa" class="sub"></p><p class="sub">Antippen: Ball entfernen. Freie Stelle antippen: Ball hinzufügen.</p><button class="btn" onclick="paGo(3)">Weiter: Auswerten</button><button class="btn s" onclick="paGo(1)">Zurück</button>`;
-else h+=`<div class="g"><label>Gut bis (m)<input type="number" step="0.5" value="${p.g}" inputmode="decimal" onchange="pa.g=+this.value||2;paDraw();paInfo()"></label><label>Ok bis (m)<input type="number" step="0.5" value="${p.ok}" inputmode="decimal" onchange="pa.ok=+this.value||4;paDraw();paInfo()"></label><label>Schläger<select onchange="pa.club=this.value">${ENT[p.cat].map(x=>`<option${x===p.club?' selected':''}>${x}</option>`).join('')}</select></label><label>Distanz (m)<input type="number" value="${p.dist}" inputmode="decimal" onchange="pa.dist=+this.value||20"></label><div class="w">${paDirSel()}</div></div><p id="pai" class="sub"></p><p id="paa" class="sub"></p><p class="sub">Grün = gut, gelb = ok, rot = schlecht. Die weißen Ellipsen sind die Kreise um die Fahne in Perspektive.</p><button class="btn" onclick="paSave()">Speichern</button><button class="btn s" onclick="paGo(2)">Zurück</button>`}
+else h+=`<div class="g"><label>Gut bis (m)<input type="number" step="0.5" value="${p.g}" inputmode="decimal" onchange="pa.g=+this.value||2;paDraw();paInfo()"></label><label>Ok bis (m)<input type="number" step="0.5" value="${p.ok}" inputmode="decimal" onchange="pa.ok=+this.value||4;paDraw();paInfo()"></label><label>Schläger<select onchange="pa.club=this.value">${ENT[p.cat].map(x=>`<option${x===p.club?' selected':''}>${x}</option>`).join('')}</select></label><label>Distanz (m)<input type="number" value="${p.dist}" inputmode="decimal" onchange="pa.dist=+this.value||20"></label><button class="btn s" onclick="openFM('pa')">Entfernung messen</button><div class="w">${paDirSel()}</div></div><p id="pai" class="sub"></p><p id="paa" class="sub"></p><p class="sub">Grün = gut, gelb = ok, rot = schlecht. Die weißen Ellipsen sind die Kreise um die Fahne in Perspektive.</p><button class="btn" onclick="paSave()">Speichern</button><button class="btn s" onclick="paGo(2)">Zurück</button>`}
 paShell(h);if(typeof p.step==='number'&&p.step>=1){const c=$('pac');c.width=p.W;c.height=p.H;paDraw();paInfo()}}
 async function paSave(){const R=pa.balls.map(paRel).filter(Boolean);if(!R.length)return toast('Keine Bälle markiert');const z=[0,0,0];pa.balls.forEach(b=>z[paZone(b)]++);const d=T(0);
 R.forEach(r=>D.sh.push({id:uid(),d,cat:pa.cat,club:pa.club,dist:pa.dist,lat:+r.lat.toFixed(2),dep:+r.dep.toFixed(2),bun:0,ud:0}));
