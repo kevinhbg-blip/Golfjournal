@@ -41,7 +41,9 @@ Angemeldete Benutzer schicken über ✉ oben rechts Feedback. Nur der Administra
 
 Ein Spieler gibt seine Trainingsdaten über ☁ → „Trainer freigeben“ für den Benutzernamen
 seines Trainers frei. Der Trainer öffnet ☁ → „Trainer-Übersicht“ (oder die Karte auf der
-Startseite) und sieht dort je Spieler Einheiten, Trainingszeit, Trefferquoten je Bereich und
+Startseite). Oben wählt er den Reiter „Übersicht“ oder eine Kategorie. Unter „⚙ Anzeige“
+legt er fest, welche Kategorien und Abschnitte er sehen will (gespeichert in seinem Konto).
+Er sieht je Spieler Einheiten, Trainingszeit, Trefferquoten je Bereich und
 Übung, die Entwicklung pro Woche bzw. Monat, Schlag- und Rundenwerte, Pelz-Tests und die
 letzten Einheiten. Der Zugriff ist nur lesend, das Tagebuch wird nicht übertragen. Die
 Freigabe kann der Spieler jederzeit entfernen. Voraussetzung: `supabase-coach.sql` einmal im
