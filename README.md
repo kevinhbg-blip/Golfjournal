@@ -58,3 +58,9 @@ einfache Tabelle mit Schläger-Spalte. Vor dem Import lassen sich Datum, Einheit
 wird metrisch in `D.gq`; die Anzeige wechselt zwischen Meter/km/h und Yards/mph. Gezeigt
 werden Bälle je Schläger (getrennt nach Modell), Ø Carry/Gesamt/seitlich, Streuungsbild und
 Ballflug- bzw. Schlägerdaten. Fehlende Schlägerdaten (0,0) werden ignoriert.
+
+In der übrigen Analyse zählen GC-Quad-Bälle mit Driver und 3er-Holz als Drives (Fairway-Quote,
+Streuung, Miss-Tendenz). Die anderen Schläger erscheinen als „Eisen & Hölzer laut GC Quad“
+mit Miss-Tendenz (Mitte = seitlich innerhalb 10 % der Carry-Distanz), in der Schlägerstatistik,
+in der Übersicht und auf der Startseite. Der Schalter „GC-Quad-Schläge einbeziehen“ (`D.gqIn`)
+blendet sie aus. In die Zielzonen-Quote fließen sie nicht ein, weil der GC Quad kein Ziel kennt.
