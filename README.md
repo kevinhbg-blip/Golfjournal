@@ -57,7 +57,9 @@ einfache Tabelle mit Schläger-Spalte. Vor dem Import lassen sich Datum, Einheit
 (Yards/mph/Fuß oder Meter) und die Zuordnung zu den Schlägern der App prüfen. Gespeichert
 wird metrisch in `D.gq`; die Anzeige wechselt zwischen Meter/km/h und Yards/mph. Gezeigt
 werden Bälle je Schläger (getrennt nach Modell), Ø Carry/Gesamt/seitlich, Streuungsbild und
-Ballflug- bzw. Schlägerdaten. Fehlende Schlägerdaten (0,0) werden ignoriert.
+Ballflug- bzw. Schlägerdaten. Fehlende Schlägerdaten (0,0) werden ignoriert. Das „Streubild alle
+Schläger“ zeigt alle Bälle farbig mit Ellipse je Schläger (wie FSX „Dispersion“); Schläger lassen
+sich ein- und ausblenden, ein angetippter Ball zeigt seine Daten.
 
 In der übrigen Analyse zählen GC-Quad-Bälle mit Driver und 3er-Holz als Drives (Fairway-Quote,
 Streuung, Miss-Tendenz). Die anderen Schläger erscheinen als „Eisen & Hölzer laut GC Quad“
