@@ -1,0 +1,3 @@
+# Nur für die Supabase-CLI: die Kalender-Funktion muss ohne Login erreichbar sein (geschützt über den Token im Link).
+[functions.golf-kalender]
+verify_jwt = false
