@@ -66,3 +66,8 @@ Streuung, Miss-Tendenz). Die anderen Schläger erscheinen als „Eisen & Hölzer
 mit Miss-Tendenz (Mitte = seitlich innerhalb 10 % der Carry-Distanz), in der Schlägerstatistik,
 in der Übersicht und auf der Startseite. Der Schalter „GC-Quad-Schläge einbeziehen“ (`D.gqIn`)
 blendet sie aus. In die Zielzonen-Quote fließen sie nicht ein, weil der GC Quad kein Ziel kennt.
+
+Oben in der Analyse wählt man unter „GC-Quad-Sessions“ aus, welche Sessions zählen (`D.gqOff`
+= abgewählte), und unter „Zielkorridor“ die Breite für Drives (Standard 30 m) und
+Transportschläge (Hölzer, Hybride, Eisen 3–9; leer = 10 % der Carry-Distanz) in `D.cor`.
+Danach richten sich Fairway-Quote, Miss-Tendenz und die Übersicht.
