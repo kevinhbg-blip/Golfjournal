@@ -49,9 +49,9 @@ letzten Einheiten. Der Zugriff ist nur lesend, das Tagebuch wird nicht übertrag
 Freigabe kann der Spieler jederzeit entfernen. Voraussetzung: `supabase-coach.sql` einmal im
 SQL Editor ausführen.
 
-## GC-Quad-Import
+## Launchmonitor-Import
 
-Analyse → Reiter „GC Quad“ → CSV-Datei wählen. Gelesen wird der CSV-Export aus FSX
+Den eigenen Launchmonitor (Foresight, TrackMan, FlightScope, Garmin, Uneekor, Bushnell, SkyTrak, Rapsodo, Full Swing, Square Golf …) wählt man unter „Datensicherung & Einstellungen“ (`D.lm`). Analyse → Reiter „Launchmonitor“ → CSV-Datei wählen. Gelesen wird der CSV-Export aus FSX
 („Shot Analysis“ mit einem Block je Schläger, z. B. `Gw`, `7i`, `Dr,Epic`) und auch eine
 einfache Tabelle mit Schläger-Spalte. Vor dem Import lassen sich Datum, Einheiten der Datei
 (Yards/mph/Fuß oder Meter) und die Zuordnung zu den Schlägern der App prüfen. Gespeichert
@@ -61,13 +61,13 @@ Ballflug- bzw. Schlägerdaten. Fehlende Schlägerdaten (0,0) werden ignoriert. D
 Schläger“ zeigt alle Bälle farbig mit Ellipse je Schläger (wie FSX „Dispersion“); Schläger lassen
 sich ein- und ausblenden, ein angetippter Ball zeigt seine Daten.
 
-In der übrigen Analyse zählen GC-Quad-Bälle mit Driver und 3er-Holz als Drives (Fairway-Quote,
-Streuung, Miss-Tendenz). Die anderen Schläger erscheinen als „Eisen & Hölzer laut GC Quad“
+In der übrigen Analyse zählen Launchmonitor-Bälle mit Driver und 3er-Holz als Drives (Fairway-Quote,
+Streuung, Miss-Tendenz). Die anderen Schläger erscheinen als „Transportschläge & Wedges laut Launchmonitor“
 mit Miss-Tendenz (Mitte = seitlich innerhalb 10 % der Carry-Distanz), in der Schlägerstatistik,
-in der Übersicht und auf der Startseite. Der Schalter „GC-Quad-Schläge einbeziehen“ (`D.gqIn`)
-blendet sie aus. In die Zielzonen-Quote fließen sie nicht ein, weil der GC Quad kein Ziel kennt.
+in der Übersicht und auf der Startseite. Der Schalter „Launchmonitor-Schläge einbeziehen“ (`D.gqIn`)
+blendet sie aus. In die Zielzonen-Quote fließen sie nicht ein, weil der Launchmonitor kein Ziel kennt.
 
-Oben in der Analyse wählt man unter „GC-Quad-Sessions“ aus, welche Sessions zählen (`D.gqOff`
+Oben in der Analyse wählt man unter „Launchmonitor-Sessions“ aus, welche Sessions zählen (`D.gqOff`
 = abgewählte), und unter „Zielkorridor“ die Breite für Drives (Standard 30 m) und
 Transportschläge (Hölzer, Hybride, Eisen 3–9; leer = 10 % der Carry-Distanz) in `D.cor`.
 Danach richten sich Fairway-Quote, Miss-Tendenz und die Übersicht.
