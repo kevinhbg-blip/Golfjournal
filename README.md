@@ -48,3 +48,13 @@ Er sieht je Spieler Einheiten, Trainingszeit, Trefferquoten je Bereich und
 letzten Einheiten. Der Zugriff ist nur lesend, das Tagebuch wird nicht übertragen. Die
 Freigabe kann der Spieler jederzeit entfernen. Voraussetzung: `supabase-coach.sql` einmal im
 SQL Editor ausführen.
+
+## GC-Quad-Import
+
+Analyse → Reiter „GC Quad“ → CSV-Datei wählen. Gelesen wird der CSV-Export aus FSX
+(„Shot Analysis“ mit einem Block je Schläger, z. B. `Gw`, `7i`, `Dr,Epic`) und auch eine
+einfache Tabelle mit Schläger-Spalte. Vor dem Import lassen sich Datum, Einheiten der Datei
+(Yards/mph/Fuß oder Meter) und die Zuordnung zu den Schlägern der App prüfen. Gespeichert
+wird metrisch in `D.gq`; die Anzeige wechselt zwischen Meter/km/h und Yards/mph. Gezeigt
+werden Bälle je Schläger (getrennt nach Modell), Ø Carry/Gesamt/seitlich, Streuungsbild und
+Ballflug- bzw. Schlägerdaten. Fehlende Schlägerdaten (0,0) werden ignoriert.
