@@ -55,7 +55,7 @@ input[type=range]{padding:0;accent-color:var(--c)}
 :focus-visible{outline:2px solid var(--c3);outline-offset:2px}
 .tg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.tl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}.tlh{font-size:.78rem;color:var(--mut)}.tlv{font-size:1.5rem;font-weight:700;line-height:1.3}.br{height:7px;border-radius:4px;background:var(--bg);margin-top:5px;overflow:hidden}.br u{display:block;height:100%}.tlp{font-size:.72rem;color:var(--mut);margin-top:3px}
 .sb{display:flex;height:24px;border-radius:6px;overflow:hidden;margin:8px 0;font-size:.72rem;color:#fff;white-space:nowrap}.sb span{display:grid;place-items:center;min-width:0;overflow:hidden}
-.tbl{width:100%;border-collapse:collapse;font-size:.88rem}.tbl th,.tbl td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}.tbl th:first-child,.tbl td:first-child{text-align:left}.tbl small{color:var(--mut)}
+.tbl{width:100%;border-collapse:collapse;font-size:.88rem}.tbl th,.tbl td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}.tbl th:first-child,.tbl td:first-child{text-align:left}.tbl small{color:var(--mut)}.tbl.nw td+td{white-space:nowrap}
 
 /* Fairway Training — 2026 visual refresh */
 :root{--bg:#f4f6f3;--ink:#172823;--mut:#75817a;--card:#fff;--line:#e5eae5;--c1:#3b8068;--c2:#317d65;--c3:#417b86;--c4:#446d69;--c5:#56876d;--accent:#b9e56e;color-scheme:light}
@@ -470,7 +470,7 @@ D.p=D.p||[];
 D.s=CAT.map(c=>({...c,lib:1})).concat(D.s.filter(s=>!s.lib));save();
 /* ===== Dashboard (Garmin-Stil) ===== */
 const ENT={drive:['Driver','3er-Holz'],app:['7er','8er','9er','PW','GW','SW','LW'],chip:['PW','GW','SW','LW'],putt:['Putter']};
-const DT=[['ueb','Übersicht'],['drive','Drive'],['app','Annäherung'],['chip','Chip'],['putt','Putt'],['club','Schläger'],['rd','Runden'],['pz','Pelz-Tests']];
+const DT=[['ueb','Übersicht'],['drive','Drive'],['app','Annäherung'],['chip','Chip'],['putt','Putt'],['club','Schläger'],['gq','GC Quad'],['rd','Runden'],['pz','Pelz-Tests']];
 const NM={drive:'Drive',app:'Annäherung',chip:'Chip',putt:'Putt'};
 const DG='#4c9a5f',DD='#2f6b3f',RD='#d0453d',GR='#8a97a3';
 let dt='ueb',dper=30,dclub='all',ad=null;
@@ -502,7 +502,7 @@ function undoSh(c){for(let i=D.sh.length-1;i>=0;i--)if(D.sh[i].cat===c){D.sh.spl
 function dashV(){
 const tabs=`<div class="chips">${DT.map(t=>`<button class="chip" style="--c:${DD}" aria-pressed="${dt===t[0]}" onclick="dt='${t[0]}';dclub='all';render()">${t[1]}</button>`).join('')}</div>`;
 const per=dt==='rd'||dt==='pz'?'':`<div class="chips">${[30,90,365].map(p=>`<button class="chip" style="--c:var(--ink)" aria-pressed="${dper===p}" onclick="dper=${p};render()">${p===365?'1 Jahr':'Letzte '+p+' Tage'}</button>`).join('')}</div>`;
-const body={ueb:dUeb,drive:dDrive,app:dApp,chip:dChip,putt:dPutt,club:dClub,rd:dRd,pz:dPz}[dt]();
+const body={ueb:dUeb,drive:dDrive,app:dApp,chip:dChip,putt:dPutt,club:dClub,gq:dGq,rd:dRd,pz:dPz}[dt]();
 return tabs+per+`<div style="--c:${DD}">`+body+'</div>'}
 function dUeb(){
 const c=o=>({d:stDrive(sel('drive',o,'all')),a:stApp(sel('app',o,'all')),h:stChip(sel('chip',o,'all')),p:stPutt(sel('putt',o,'all')),r:stRd(o)}),A=c(0),B=c(1);
@@ -519,7 +519,82 @@ return clubSel(ENT.chip)+`<div class="card" style="--c:${DD}"><h2>Streuung Chip<
 function dPutt(){const a=sel('putt',0,'all'),s=stPutt(a),p=stPutt(sel('putt',1,'all')),r=stRd(0),r1=stRd(1);
 return `<div class="tg">${tile('Putts pro Loch',r.ph,'',r1.ph,'down',.1,1)}${tile('Eingelocht gesamt',s.all,' %',p.all,'up',3)}${s.b.map((b,i)=>tile(b.k+' ('+b.r+')',b.p,' %',p.b[i].p,'up',3)).join('')}</div><div class="card" style="--c:${DD}"><h2>Eingelocht nach Länge</h2>${a.length?`<div class="skw" style="color:var(--ink)">${puttChart(a)}</div><p class="sub">Balken = Quote in % je Meter-Bereich, darunter die Anzahl Putts.</p>`:noData}</div>`+addBtn('putt')}
 function dClub(){const rows=[];[['drive','Fairway'],['app','Zielzone'],['chip','≤ 2 m'],['putt','Eingelocht']].forEach(([k,ql])=>ENT[k].forEach(cl=>{const a=sel(k,0,cl);if(!a.length)return;let w,q;if(k==='drive'){const s=stDrive(a);w=s.carry;q=s.fw}else if(k==='app'){w=avg(a.map(x=>x.dist));q=stApp(a).gir}else if(k==='chip'){w=avg(a.map(x=>x.dist||0));q=stChip(a).w2}else{w=avg(a.map(x=>x.dist));q=stPutt(a).all}rows.push(`<tr><td>${cl}</td><td>${NM[k]}<br><small>${ql}</small></td><td>${a.length}</td><td>${k==='putt'?f1(w):Math.round(w)}</td><td><b>${q==null?'–':q+' %'}</b></td></tr>`)}));
-return `<div class="card" style="--c:${DD}"><h2>Schlägerstatistik</h2>${rows.length?`<table class="tbl"><tr><th>Schläger</th><th>Bereich</th><th>Schläge</th><th>Ø m</th><th>Quote</th></tr>${rows.join('')}</table><p class="sub">Ø m = Carry (Drive), Zieldistanz (Annäherung, Chip) bzw. Puttlänge. Quote = Anteil Treffer im jeweiligen Bereich.</p>`:noData}</div>`}
+return `<div class="card" style="--c:${DD}"><h2>Schlägerstatistik</h2>${rows.length?`<table class="tbl"><tr><th>Schläger</th><th>Bereich</th><th>Schläge</th><th>Ø m</th><th>Quote</th></tr>${rows.join('')}</table><p class="sub">Ø m = Carry (Drive), Zieldistanz (Annäherung, Chip) bzw. Puttlänge. Quote = Anteil Treffer im jeweiligen Bereich.</p>`:noData}</div>`+gqHint()}
+function gqHint(){const G=gqGroups(1);if(!G.length)return `<p class="sub">Bälle vom GC Quad: im Reiter „GC Quad“ den CSV-Export aus FSX laden.</p>`;return `<div class="card" style="--c:${DD}"><h2>Bälle laut GC Quad</h2><table class="tbl"><tr><th>Schläger</th><th>Bälle</th><th>Ø Carry</th></tr>${G.map(g=>`<tr><td>${gqE(g.key)}</td><td>${g.n}</td><td>${gqFmt('ca',gqAv(g.S.ca))}</td></tr>`).join('')}</table><button class="btn s" onclick="dt='gq';render()">GC-Quad-Auswertung öffnen</button></div>`}
+/* ===== GC-Quad-Import (CSV aus FSX): Sessions in D.gq, Werte metrisch (m, km/h) ===== */
+const GQF=[['ca','Carry','d'],['to','Gesamt','d'],['of','Seitlich','d'],['cu','Kurve','d'],['ph','Scheitelhöhe','h'],['de','Landewinkel','a'],['bs','Ballspeed','v'],['la','Abflugwinkel','a'],['ld','Startrichtung','a'],['bk','Backspin','r'],['ss','Sidespin','r'],['sp','Gesamtspin','r'],['ax','Spinachse','a',1],['cs','Schlägerspeed','v',1],['sm','Smash','',1],['aa','Anstellwinkel','a',1],['cp','Schwungbahn','a',1],['ft','Schlagfläche','a',1],['dl','Dyn. Loft','a',1]];
+const GQA={ca:/^carry/,to:/^total(?!\s*spin)|^gesamt(?!\s*spin)/,ph:/peak|apex|max\.?\s*height|scheitel/,of:/^offline|^side(?!\s*spin)|^lateral|abweich|^seitlich/,cu:/^curve|^kurve/,de:/descent|landew/,bs:/^ball\s*speed|ballgeschw/,la:/^launch\s*angle|^vla|abflugw|startw/,ld:/^launch\s*dir|^hla|azimuth|startricht/,bk:/back\s*spin|rückw/,ss:/side\s*spin|seitw/,sp:/^total\s*spin|^spin(\s*rate)?$|gesamtspin/,ax:/spin\s*axis|spinachse/,cs:/^club\s*(head\s*)?speed$|^schläger(kopf)?geschw/,sm:/smash/,aa:/attack|^aoa|anstell/,cp:/club\s*path|schwungbahn/,ft:/face\s*to\s*target|^face\s*angle|^schlagfläche/,dl:/dynamic\s*loft|dyn\.?\s*loft/,_d:/^date|^datum/,_t:/^time|^uhrzeit|^zeit/,_c:/^club(\s*(type|name))?$|^schläger$/};
+const GQU={imp:['Yards · mph · Fuß',{d:.9144,h:.3048,v:1.609344}],mm:['Meter · mph',{d:1,h:1,v:1.609344}],mk:['Meter · km/h',{d:1,h:1,v:1}],ms:['Meter · m/s',{d:1,h:1,v:3.6}]};
+const GQC=['Driver','3er-Holz','5er-Holz','7er-Holz','3er-Hybrid','4er-Hybrid','5er-Hybrid','3er','4er','5er','6er','7er','8er','9er','PW','GW','SW','LW','Putter'];
+const gqE=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+let gqP=null,gqSel=null;
+function gqCSV(t){t=t.replace(/^\uFEFF/,'');const h=t.slice(0,2000),n=c=>(h.split(c).length-1),dl=n(';')>n(',')?';':n('\t')>n(',')?'\t':',';const R=[];let row=[],c='',q=false;
+for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===dl){row.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;row.push(c);R.push(row);row=[];c=''}else c+=ch}
+if(c||row.length){row.push(c);R.push(row)}return R.map(r=>r.map(x=>x.trim()))}
+/* „6.0 L“ → -6, „2.9 DN“ → -2,9: links, unten, außen-innen, geschlossen, Ferse und tief sind negativ */
+function gqNum(v){const m=/^([+-]?\d+(?:[.,]\d+)?)\s*([A-Za-z-]*)$/.exec(String(v==null?'':v).trim());if(!m)return null;const n=parseFloat(m[1].replace(',','.'));return /^(L|LEFT|DN|DOWN|O-I|CL|H|LO)$/i.test(m[2])?-n:n}
+function gqDate(s){let m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s||'');if(m)return `${m[1]}-${z(+m[2])}-${z(+m[3])}`;m=/^(\d{1,2})([\/.])(\d{1,2})\2(\d{2,4})/.exec(s||'');if(!m)return null;let a=+m[1],b=+m[3],y=+m[4];if(y<100)y+=2000;if(m[2]==='.'||a>12)[a,b]=[b,a];return a>=1&&a<=12&&b>=1&&b<=31?`${y}-${z(a)}-${z(b)}`:null}
+function gqTime(s){const m=/(\d{1,2}):(\d{2})(?::\d{2})?\s*([AP]M)?/i.exec(s||'');if(!m)return '';let h=+m[1];if(m[3]){const p=/p/i.test(m[3]);if(h===12)h=p?12:0;else if(p)h+=12}return z(h)+':'+m[2]}
+function gqClub(l){const s=String(l||'').toLowerCase().replace(/[\s_]+/g,'').replace(/-/g,'');let m;
+if(/^(dr|drv|driver|1w|d)$/.test(s))return 'Driver';if((m=/^(\d)(w|wd|wood|fw|holz|erholz)$/.exec(s)))return m[1]+'er-Holz';if((m=/^(\d)(h|hy|hyb|hybrid|rescue|erhybrid)$/.exec(s)))return m[1]+'er-Hybrid';
+if((m=/^(\d)(i|ir|iron|eisen|er|ereisen)$/.exec(s)))return m[1]+'er';if(/^(pw|p|pitchingwedge|pitch)$/.test(s))return 'PW';if(/^(gw|aw|uw|g|gapwedge|approachwedge)$/.test(s))return 'GW';if(/^(sw|s|sandwedge)$/.test(s))return 'SW';if(/^(lw|l|lobwedge)$/.test(s))return 'LW';if(/^(pt|pu|putt|putter)$/.test(s))return 'Putter';
+if((m=/^(\d{2})(°|deg|grad)?$/.exec(s))){const g=+m[1];return g<50?'PW':g<54?'GW':g<58?'SW':'LW'}return String(l||'?').trim()}
+const gqOrd=c=>{const i=GQC.indexOf(c);return i<0?99:i};
+function gqHead(r){const H={},used=new Set();r.forEach((h,i)=>{const l=h.toLowerCase().replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g,' ').trim();for(const k in GQA)if(!used.has(k)&&GQA[k].test(l)){H[k]=i;used.add(k);break}});
+const u=r.join(' ').toLowerCase();H.u=/\b(yds?|yards)\b/.test(u)?'imp':/\bm\/s\b/.test(u)?'ms':/km\/h|kmh/.test(u)?'mk':/\(m\)|\[m\]/.test(u)?(/mph/.test(u)?'mm':'mk'):null;return H}
+function gqParse(t){const R=gqCSV(t),G=[],gi={};let H=null,blk=null,u=null;
+for(const r of R){const ne=r.filter(Boolean);if(!ne.length)continue;const lc=r.map(x=>x.toLowerCase());
+if(lc.some(x=>/^carry/.test(x))){H=gqHead(r);if(H.u)u=H.u;continue}
+const ca=H?gqNum(r[H.ca]):null;
+if(ca==null){if(ne.length<=2&&!/^(average|avg|durchschnitt|mittel|std|dev|min|max|total|summe)/i.test(ne[0]))blk={l:ne[0],m:ne[1]||''};continue}
+if(/^(average|avg|durchschnitt|mittel|std|dev|min|max|total|summe)/i.test(r[0]||'')||/^(average|avg|durchschnitt)/i.test(r[1]||''))continue;
+const l=H._c!=null?r[H._c]:blk?blk.l:'?',mo=H._c!=null?'':blk?blk.m:'',key=l+'|'+mo;
+if(!(key in gi)){gi[key]=G.length;G.push({l,m:mo,c:gqClub(l),s:[]})}
+const v={};for(const f of GQF){const x=H[f[0]]!=null?gqNum(r[H[f[0]]]):null;v[f[0]]=x==null||(f[3]&&x===0)?null:x}
+G[gi[key]].s.push({d:H._d!=null?gqDate(r[H._d]):null,t:H._t!=null?gqTime(r[H._t]):'',v})}
+return {G,u}}
+function gqFile(f){if(!f)return;f.text().then(t=>{const p=gqParse(t);if(!p.G.length){toast('Keine Schläge in der Datei gefunden',2500);return}
+const ds=p.G.flatMap(g=>g.s.map(s=>s.d)).filter(Boolean).sort();gqP={f:f.name,G:p.G,u:p.u||'imp',d:ds[0]||(f.lastModified?ymd(new Date(f.lastModified)):T(0))};gqPrev()}).catch(()=>toast('Datei nicht lesbar'))}
+function gqPrev(){let o=$('ov4');if(!o){o=document.createElement('div');o.id='ov4';o.className='ov';document.body.append(o)}const p=gqP,k=GQU[p.u][1].d,n=p.G.reduce((t,g)=>t+g.s.length,0);
+const opt=g=>(GQC.includes(g.c)?GQC:[g.c].concat(GQC)).map(c=>`<option${c===g.c?' selected':''}>${gqE(c)}</option>`).join('')+`<option value=""${g.c?'':' selected'}>nicht importieren</option>`;
+o.innerHTML=`<div class="mod" style="--c:${DD}"><button class="x" onclick="gqP=null;$('ov4').remove()" aria-label="Schließen">✕</button><h2>GC-Quad-Import</h2><p class="sub">${gqE(p.f)} · ${n} Schläge in ${p.G.length} ${p.G.length===1?'Block':'Blöcken'}</p>
+<div class="g"><label>Datum<input type="date" value="${p.d}" onchange="gqP.d=this.value||gqP.d"></label><label>Einheiten in der Datei<select onchange="gqP.u=this.value;gqPrev()">${Object.entries(GQU).map(([x,v])=>`<option value="${x}"${x===p.u?' selected':''}>${v[0]}</option>`).join('')}</select></label></div>
+<table class="tbl nw"><tr><th>In der Datei</th><th>Bälle</th><th>Ø Carry</th><th>Schläger in der App</th></tr>${p.G.map((g,i)=>{const c=avg(g.s.map(s=>s.v.ca).filter(x=>x!=null))*k;return `<tr><td>${gqE(g.l)}${g.m?'<br><small>'+gqE(g.m)+'</small>':''}</td><td>${g.s.length}</td><td>${gqFmt('ca',c)}</td><td><select style="min-width:110px" onchange="gqP.G[${i}].c=this.value">${opt(g)}</select></td></tr>`}).join('')}</table>
+<p class="sub">Ø Carry ist schon umgerechnet. Wirkt der Wert unplausibel, stimmen die Einheiten nicht: In FSX unter Einstellungen → Sprache und Einheiten nachsehen. Fehlende Schlägerdaten (0,0) werden ignoriert.</p>
+<button class="btn" onclick="gqSave()">Importieren</button></div>`}
+const gqR=(f,x)=>x==null?null:f==='sm'?Math.round(x*100)/100:f==='bk'||f==='ss'||f==='sp'?Math.round(x):Math.round(x*10)/10;
+function gqSave(){const p=gqP,U=GQU[p.u][1],G=p.G.filter(g=>g.c&&g.s.length);if(!G.length){toast('Kein Schläger zum Importieren');return}
+const k=GQF.map(f=>f[0]).filter(f=>G.some(g=>g.s.some(s=>s.v[f]!=null))),s0=G[0].s[0],h=[p.d,s0.t,G.reduce((t,g)=>t+g.s.length,0),s0.v.ca].join('|');
+D.gq=D.gq||[];if(D.gq.some(x=>x.h===h)&&!confirm('Diese Session ist schon importiert. Trotzdem noch einmal importieren?'))return;
+const sc=f=>{const t=(GQF.find(x=>x[0]===f)||[])[2];return t==='d'?U.d:t==='h'?U.h:t==='v'?U.v:1};
+D.gq.push({id:uid(),d:p.d,f:p.f,h,k,b:G.map(g=>({c:g.c,m:g.m,l:g.l,s:g.s.map(s=>[s.t].concat(k.map(f=>gqR(f,s.v[f]==null?null:s.v[f]*sc(f)))))}))});
+const n=G.reduce((t,g)=>t+g.s.length,0);save();gqP=null;$('ov4').remove();dt='gq';gqSel=null;if(!inPer(p.d,dper,0))dper=365;render();toast(n+' Schläge importiert')}
+function gqDel(id){if(!confirm('Diese GC-Quad-Session löschen?'))return;D.gq=(D.gq||[]).filter(s=>s.id!==id);save();render()}
+/* Anzeige: metrisch (m, km/h) oder Yards/mph, Wahl in D.gqu */
+function gqFmt(f,x,sg){if(x==null||isNaN(x))return '–';const t=(GQF.find(y=>y[0]===f)||[])[2],y=D.gqu==='y',v=t==='d'?(y?x/.9144:x):t==='h'?(y?x/.3048:x):t==='v'?(y?x/1.609344:x):x,u=t==='d'?(y?' yd':' m'):t==='h'?(y?' ft':' m'):t==='v'?(y?' mph':' km/h'):t==='a'?'°':t==='r'?' rpm':'';
+const a=sg?Math.abs(v):v,s=f==='sm'?a.toFixed(2).replace('.',','):t==='r'?String(Math.round(a)):f1(a);return s+u+(sg&&Math.round(a*10)?' '+sg[v<0?0:1]:'')}
+const GQS={of:['L','R'],cu:['L','R'],ld:['L','R'],ss:['L','R'],aa:['ab','auf'],cp:['außen-innen','innen-außen'],ft:['zu','offen']};
+function gqGroups(per){const M={};for(const s of D.gq||[]){if(per&&!inPer(s.d,dper,0))continue;for(const b of s.b){const key=b.c+(b.m?' · '+b.m:'');const g=M[key]||(M[key]={key,c:b.c,m:b.m,n:0,S:{},ss:new Set()});g.ss.add(s.id);b.s.forEach(r=>{g.n++;s.k.forEach((f,i)=>{if(r[i+1]!=null)(g.S[f]=g.S[f]||[]).push(r[i+1])});const io=s.k.indexOf('of'),ic=s.k.indexOf('ca');(g.P=g.P||[]).push([io<0?0:r[io+1],ic<0?null:r[ic+1]])})}}
+return Object.values(M).sort((a,b)=>gqOrd(a.c)-gqOrd(b.c)||a.key.localeCompare(b.key))}
+const gqAv=a=>a&&a.length?avg(a):null,gqSd=a=>{if(!a||a.length<2)return null;const m=avg(a);return Math.sqrt(avg(a.map(x=>(x-m)*(x-m))))};
+function gqPlot(P){P=P.filter(p=>p[0]!=null&&p[1]!=null);if(!P.length)return '';const y=D.gqu==='y'?1/.9144:1,Q=P.map(p=>[p[0]*y,p[1]*y]),cs=Q.map(p=>p[1]),lo=Math.min(...cs),hi=Math.max(...cs),st=hi-lo>60?20:hi-lo>25?10:5,y0=Math.max(0,Math.floor((lo-st/2)/st)*st),y1=Math.ceil((hi+st/2)/st)*st,xm=Math.max(10,Math.ceil(Math.max(...Q.map(p=>Math.abs(p[0])))/5)*5);
+const X=v=>170+v/xm*150,Y=v=>286-(v-y0)/(y1-y0)*262;let g='<rect width="340" height="300" fill="#3f8a55"/>';for(let c=y0;c<=y1;c+=st)g+=`<line x1="10" x2="330" y1="${Y(c)}" y2="${Y(c)}" stroke="#fff" opacity=".3" stroke-dasharray="3 4"/><text x="12" y="${Y(c)-3}" font-size="10" fill="#fff">${c} ${D.gqu==='y'?'yd':'m'}</text>`;
+g+=`<line x1="170" x2="170" y1="20" y2="290" stroke="#fff" opacity=".5"/><text x="20" y="296" font-size="9" fill="#fff">${xm} ${D.gqu==='y'?'yd':'m'} links</text><text x="320" y="296" font-size="9" fill="#fff" text-anchor="end">${xm} ${D.gqu==='y'?'yd':'m'} rechts</text>`;
+Q.forEach(p=>{g+=dot(X(p[0]),Y(p[1]),'#fff',3.5)});const mx=avg(Q.map(p=>p[0])),my=avg(cs);g+=`<path d="M${X(mx)-7} ${Y(my)}h14M${X(mx)} ${Y(my)-7}v14" stroke="#ffd23f" stroke-width="2.5"/>`;return svgW('0 0 340 300',g)}
+function dGq(){const S=(D.gq||[]).filter(s=>inPer(s.d,dper,0)),G=gqGroups(1),N=G.reduce((t,g)=>t+g.n,0),mx=Math.max(1,...G.map(g=>g.n)),y=D.gqu==='y';
+if(gqSel&&!G.some(g=>g.key===gqSel))gqSel=null;const sg=G.find(g=>g.key===gqSel);
+let h=`<div class="card" style="--c:${DD}"><h2>GC-Quad-Daten importieren</h2><p class="sub">CSV-Export aus FSX (Analyse → Export → CSV) hier laden. Erkannt werden Schläger, Carry, Gesamt, Seitlich, Ballspeed, Spin, Abflug- und Landewinkel und, wenn vorhanden, die Schlägerdaten.</p><label>CSV-Datei wählen<input type="file" accept=".csv,text/csv,text/plain,text/comma-separated-values" onchange="gqFile(this.files[0]);this.value=''"></label>
+<div class="chips"><button class="chip" style="--c:var(--ink)" aria-pressed="${!y}" onclick="D.gqu='m';save();render()">Meter · km/h</button><button class="chip" style="--c:var(--ink)" aria-pressed="${y}" onclick="D.gqu='y';save();render()">Yards · mph</button></div></div>`;
+if(!G.length)return h+`<div class="card">${noData}</div>`;
+h+=`<div class="tg"><div class="tl"><div class="tlh">Bälle gesamt</div><div class="tlv">${N}</div></div><div class="tl"><div class="tlh">Sessions</div><div class="tlv">${S.length}</div></div></div>`;
+h+=`<div class="card" style="--c:${DD}"><h2>Bälle je Schläger</h2><table class="tbl nw"><tr><th>Schläger</th><th>Bälle</th><th>Ø Carry</th><th>Ø Gesamt</th><th>Ø seitlich</th></tr>${G.map((g,i)=>`<tr style="cursor:pointer" onclick="gqSel=${gqE(JSON.stringify(g.key))};render()"><td><b>${gqE(g.c)}</b>${g.m?'<br><small>'+gqE(g.m)+'</small>':''}<div class="br"><u style="width:${g.n/mx*100}%;background:${DG}"></u></div></td><td>${g.n}</td><td>${gqFmt('ca',gqAv(g.S.ca))}</td><td>${gqFmt('to',gqAv(g.S.to))}</td><td>${gqFmt('of',gqAv(g.S.of),GQS.of)}</td></tr>`).join('')}</table><p class="sub">Tippe auf einen Schläger für Ballflug, Streuung und Schlägerdaten. Ø seitlich = mittlere Richtung (L/R).</p></div>`;
+const csel=`<label>Schläger<select onchange="gqSel=this.value||null;render()"><option value="">wählen</option>${G.map(g=>`<option value="${gqE(g.key)}"${g.key===gqSel?' selected':''}>${gqE(g.key)} (${g.n})</option>`).join('')}</select></label>`;
+if(sg){const T2=(l,f,ex)=>{const a=gqAv(sg.S[f]);return a==null?'':`<div class="tl"><div class="tlh">${l}</div><div class="tlv" style="font-size:1.25rem">${gqFmt(f,a,GQS[f])}</div>${ex?`<div class="tlp">${ex}</div>`:''}</div>`},sd=f=>{const v=gqSd(sg.S[f]);return v==null?'':'Streuung ± '+gqFmt(f,v)},rg=f=>sg.S[f]?gqFmt(f,Math.min(...sg.S[f]))+' bis '+gqFmt(f,Math.max(...sg.S[f])):'';
+h+=`<div class="card" style="--c:${DD}"><h2>${gqE(sg.key)}</h2>${csel}<p class="sub">${sg.n} Bälle aus ${sg.ss.size} ${sg.ss.size===1?'Session':'Sessions'}</p><div class="skw">${gqPlot(sg.P||[])}</div><p class="sub">Jeder Punkt ist ein Ball: oben = weiter (Carry), seitlich = Abweichung von der Ziellinie. Gelbes Kreuz = Mittelwert.</p></div>
+<div class="tg">${T2('Ø Carry','ca',sd('ca'))}${T2('Ø Gesamt','to',rg('to'))}${T2('Ø seitlich','of',sd('of'))}${T2('Ø Kurve','cu')}${T2('Ballspeed','bs')}${T2('Schlägerspeed','cs')}${T2('Smash','sm')}${T2('Abflugwinkel','la')}${T2('Startrichtung','ld')}${T2('Backspin','bk')}${T2('Gesamtspin','sp')}${T2('Scheitelhöhe','ph')}${T2('Landewinkel','de')}${T2('Anstellwinkel','aa')}${T2('Schwungbahn','cp')}${T2('Schlagfläche','ft')}${T2('Dyn. Loft','dl')}</div>`}
+else h+=`<div class="card" style="--c:${DD}">${csel}</div>`;
+h+=`<div class="card" style="--c:${DD}"><h2>Importierte Sessions</h2><table class="tbl"><tr><th>Datum</th><th>Bälle</th><th>Schläger</th><th></th></tr>${[...S].sort((a,b)=>b.d<a.d?-1:1).map(s=>`<tr><td>${s.d.split('-').reverse().join('.')}<br><small>${gqE(s.f)}</small></td><td>${s.b.reduce((t,b)=>t+b.s.length,0)}</td><td style="text-align:left">${s.b.map(b=>gqE(b.c)).filter((c,i,a)=>a.indexOf(c)===i).join(', ')}</td><td><button class="chip" onclick="gqDel('${s.id}')" aria-label="Session löschen">🗑</button></td></tr>`).join('')}</table></div>`;
+return h}
 function dRd(){const R=[...D.rd].sort((a,b)=>b.d<a.d?-1:1),n=x=>`<input id="${x[0]}" type="number" inputmode="numeric" min="0" value="${x[2]}">`;
 return `<div class="card" style="--c:${DD}"><h2>Runde erfassen</h2><div class="g"><label>Datum<input id="rdd" type="date" value="${T(0)}"></label><label>Löcher<select id="rdh"><option>18</option><option>9</option></select></label><label>Putts gesamt${n(['rdp','',''])}</label><label>Strafschläge${n(['rdn','',0])}</label><label>Recoveries${n(['rdr','',0])}</label><label>Bunker${n(['rdb','',0])}</label></div><p class="sub">Recovery = Par oder Bogey gerettet, obwohl das Grün verfehlt wurde. Bunker = Anzahl Bunkerschläge.</p><button class="btn" onclick="addR()">Runde speichern</button></div>`+(R.length?R.map(r=>`<div class="card" style="--c:${DD}"><div class="rowx"><b style="color:var(--ink)">${r.d} · ${r.holes} Löcher</b><button class="back" onclick="delR('${r.id}')">Löschen</button></div><div class="st"><span><b>${f1(r.putts/r.holes)}</b> Putts/Loch</span><span><b>${r.pen}</b> Strafschl.</span><span><b>${r.rec}</b> Recov.</span><span><b>${r.bun}</b> Bunker</span></div></div>`).join(''):'<p class="sub">Noch keine Runde erfasst.</p>')}
 function addR(){const p=parseInt(V('rdp'));if(isNaN(p)){toast('Putts eintragen');return}D.rd.push({id:uid(),d:V('rdd')||T(0),holes:+V('rdh'),putts:p,pen:parseInt(V('rdn'))||0,rec:parseInt(V('rdr'))||0,bun:parseInt(V('rdb'))||0});save();render();toast('Runde gespeichert')}
@@ -753,6 +828,7 @@ const BASE_EXERCISES=[
 for(const ex of BASE_EXERCISES)if(!D.s.some(s=>s.id===ex.id))D.s.push(ex);
 D.v=Math.max(4,D.v||0);
 if(D.v<5){for(const ex of FIT_BASE)if(!D.s.some(s=>s.id===ex.id))D.s.push(ex);D.v=5}
+if(D.v<6){D.gq=D.gq||[];D.v=6}
 unlockAll();
 pzEnsure();freeEnsure();
 save();
