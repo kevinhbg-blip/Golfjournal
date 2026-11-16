@@ -17,6 +17,7 @@ Reine HTML/JavaScript-App ohne Build-Schritt und ohne Server. Läuft direkt übe
 | `supabase-setup.sql` | Tabelle für Konto & Cloud-Speicher (einmal im Supabase SQL Editor ausführen) |
 | `supabase-feedback.sql` | Tabelle für Feedback, nur für den Administrator Kevspam lesbar (einmal ausführen) |
 | `supabase-coach.sql` | Trainer-Freigabe und Trainer-Übersicht (einmal ausführen) |
+| `schwung/` | Schwunganalyse (Beta), eigene Seite unter `/schwung/` |
 
 ## Daten
 
@@ -71,3 +72,13 @@ Oben in der Analyse wählt man unter „Launchmonitor-Sessions“ aus, welche Se
 = abgewählte), und unter „Zielkorridor“ die Breite für Drives (Standard 30 m) und
 Transportschläge (Hölzer, Hybride, Eisen 3–9; leer = 10 % der Carry-Distanz) in `D.cor`.
 Danach richten sich Fairway-Quote, Miss-Tendenz und die Übersicht.
+
+## Schwunganalyse (Beta)
+
+Eigene Seite `schwung/index.html` (aufrufbar unter `…/golfjournal/schwung/`), die App selbst bleibt unverändert.
+Ein Schwungvideo wird im Browser Bild für Bild mit MediaPipe Pose (lokal in `schwung/mp/`, ca. 28 MB)
+ausgewertet; kein Video verlässt das Gerät.
+
+- `schwung/analyse.js`: Phasen (Ansprechen, Top, Treffmoment, Finish), 16 Prüfungen, alle Grenzwerte in `TH`.
+- `schwung/app.js`: Bedienung, Markierungen im Video, Linien-Werkzeug, Standbild teilen, Verlauf (localStorage `golfswing.v1`).
+- Test der Logik mit künstlichen Schwüngen: `node schwung/test/synth.mjs`.

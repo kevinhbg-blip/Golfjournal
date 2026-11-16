@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#172823">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="../icons/icon-192.png">
+<title>Schwunganalyse (Beta)</title>
+<style>
+:root{--bg:#f4f6f3;--ink:#172823;--mut:#66736c;--card:#fff;--line:#e2e8e2;--c1:#3b8068;--accent:#b9e56e;--bad:#d64545;--warn:#d9822b;--ok:#2f8f6b;color-scheme:light;box-sizing:border-box}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--ink);color:#fff}
+header a{color:var(--accent);text-decoration:none;font-size:14px}
+header h1{font-size:17px;margin:0;flex:1}
+.beta{background:var(--accent);color:var(--ink);font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:2px}
+main{max-width:760px;margin:0 auto;padding:12px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+h2{font-size:16px;margin:0 0 10px}
+h3{font-size:14px;margin:14px 0 6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.pri{background:var(--c1);border-color:var(--c1);color:#fff}
+.btn.big{width:100%;min-height:54px;font-size:16px}
+.btn:disabled{opacity:.5}
+.btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+@media (max-width:480px){.g{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.g label.w{grid-column:1/-1}}
+label.f{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px;min-width:0}
+select{font:inherit;font-size:16px;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff;color:var(--ink);width:100%;-webkit-appearance:none;appearance:none}
+.mut{color:var(--mut);font-size:13px}
+details summary{cursor:pointer;font-weight:600;padding:6px 0}
+ul.tips{margin:6px 0 0;padding-left:18px}
+ul.tips li{margin:3px 0}
+#fname{margin-top:8px;font-size:13px;color:var(--mut);word-break:break-all}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.bar>i{display:block;height:100%;width:0;background:var(--c1);transition:width .2s}
+#stageWrap{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0 4px;margin:0 -16px;padding-left:16px;padding-right:16px}
+#stage{position:relative;margin:0 auto;background:#000;border-radius:12px;overflow:hidden;touch-action:manipulation}
+#stage video,#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#stage canvas.draw{touch-action:none;cursor:crosshair}
+#wbar{position:absolute;left:8px;right:8px;bottom:8px;height:22px;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;display:none;align-items:center;justify-content:space-between;padding:0 6px}
+#wbar i{position:absolute;top:3px;bottom:3px;width:4px;margin-left:-2px;background:var(--accent);border-radius:2px;left:50%}
+.ctr{display:flex;gap:6px;align-items:center;margin-top:6px}
+.ctr .btn{min-width:44px;padding:0 10px}
+.ctr select{width:auto;min-height:44px}
+#tl{position:relative;flex:1;height:44px}
+#tl input{position:absolute;left:0;right:0;top:10px;width:100%;margin:0}
+#tl .mk{position:absolute;top:0;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--mut);pointer-events:none}
+#tl .fd{position:absolute;bottom:2px;width:8px;height:8px;border-radius:50%;transform:translateX(-50%);pointer-events:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{min-height:36px;padding:0 10px;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.fault{border:1px solid var(--line);border-left:5px solid var(--ok);border-radius:10px;padding:10px 12px;margin:8px 0;cursor:pointer;background:#fff}
+.fault.s2{border-left-color:var(--bad)}
+.fault.s1{border-left-color:var(--warn)}
+.fault.sel{box-shadow:0 0 0 2px var(--ink)}
+.fault .fh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.fault .fh b{flex:1;min-width:60%}
+.badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--ok);color:#fff;white-space:nowrap}
+.s2 .badge{background:var(--bad)}.s1 .badge{background:var(--warn)}
+.fault .val{font-size:13px;color:var(--mut);margin-top:2px}
+.fault .more{margin-top:8px;font-size:14px}
+.fault .more p{margin:4px 0}
+.fault .more ol{margin:4px 0;padding-left:20px}
+.okl{font-size:13px;color:var(--mut);margin:4px 0;padding-left:18px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:nth-child(2){text-align:right;font-weight:600;white-space:nowrap}
+td small{display:block;color:var(--mut);font-size:12px}
+.note{background:#fff7e6;border:1px solid #f2d39b;border-radius:10px;padding:8px 10px;font-size:13px;margin:8px 0}
+.err{background:#fdecec;border:1px solid #f0b4b4;border-radius:10px;padding:10px;font-size:14px;margin:8px 0}
+.hist{font-size:14px;border-bottom:1px solid var(--line);padding:8px 0}
+.hist:last-child{border:0}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:20}
+#toast.on{opacity:1}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:4px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
+</style>
+</head>
+<body>
+<header><a href="../">‹ App</a><h1>Schwunganalyse<span class="beta">BETA</span></h1></header>
+<main>
+  <section class="card" id="start">
+    <h2>1. Schwungvideo wählen</h2>
+    <label class="btn big pri" for="file">🎥 Video aufnehmen oder auswählen</label>
+    <input type="file" id="file" accept="video/*" hidden>
+    <div id="fname"></div>
+    <div class="g">
+      <label class="f">Spielhand<select id="hand"><option value="R">Rechtshänder</option><option value="L">Linkshänder</option></select></label>
+      <label class="f">Perspektive<select id="view"><option value="auto">Automatisch</option><option value="fo">Frontal (Face-on)</option><option value="dtl">Von hinten (Down the line)</option></select></label>
+      <label class="f w">Schläger<select id="club"><option value="driver">Driver</option><option value="holz">Holz / Hybrid</option><option value="eisen" selected>Eisen</option><option value="wedge">Wedge</option></select></label>
+    </div>
+    <button class="btn big pri" id="go" style="margin-top:12px" disabled>Schwung analysieren</button>
+    <details style="margin-top:10px">
+      <summary>So filmst du richtig</summary>
+      <ul class="tips">
+        <li><b>Stativ</b> oder Handy fest abstellen, auf Hüfthöhe, etwa 3–4 m entfernt. Die Kamera darf sich nicht bewegen.</li>
+        <li><b>Ganzer Körper im Bild</b>, vom Kopf bis zu den Füßen, auch im Finish. Hochformat ist gut.</li>
+        <li><b>Frontal (Face-on):</b> Kamera zeigt auf deine Brust, mittig zwischen den Füßen. Zeigt Sway, Slide, Kopf, Oberkörperneigung, Arme, Gewichtsverlagerung.</li>
+        <li><b>Von hinten (Down the line):</b> Kamera hinter dir auf Höhe der Hände, Blick entlang der Ziellinie. Zeigt Haltung, Early Extension, Aufrichten, Over the Top.</li>
+        <li><b>Ein Schwung pro Video</b>, Aufnahme vor dem Ansprechen starten und nach dem Finish stoppen (ideal 3–8 s).</li>
+        <li><b>Zeitlupe</b> (120 oder 240 Bilder/s) macht den Treffmoment schärfer. Gutes Licht, keine weiteren Personen im Bild.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card" id="prog" hidden>
+    <h2 id="progT">Analyse läuft …</h2>
+    <div class="bar"><i id="progB"></i></div>
+    <div class="mut" id="progS"></div>
+  </section>
+
+  <div id="errBox"></div>
+
+  <section id="res" hidden>
+    <div id="stageWrap">
+      <div id="stage"><video id="vid" playsinline muted preload="auto"></video><canvas id="ov"></canvas><div id="wbar"><span>hinten</span><i></i><span>vorne</span></div></div>
+      <div class="ctr">
+        <button class="btn" id="bPrev" aria-label="Bild zurück">◀︎</button>
+        <button class="btn" id="bPlay" aria-label="Abspielen">▶︎</button>
+        <button class="btn" id="bNext" aria-label="Bild vor">▶︎|</button>
+        <div id="tl"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position"></div>
+        <select id="rate" aria-label="Geschwindigkeit"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25" selected>¼×</option><option value="0.1">⅒×</option></select>
+      </div>
+    </div>
+    <div class="chips" id="phases"></div>
+    <div class="chips" id="tools">
+      <button class="chip on" data-t="skel">Skelett</button>
+      <button class="chip" data-t="ghost">Ansprechposition</button>
+      <button class="chip" data-t="path">Handweg</button>
+      <button class="chip" data-t="draw">✏️ Linie ziehen</button>
+      <button class="chip" data-t="clear">Linien löschen</button>
+      <button class="chip" data-t="snap">📷 Bild teilen</button>
+    </div>
+    <div class="legend"><span><i style="background:#ffffff"></i>Ansprechen (Bezug)</span><span><i style="background:#ff4d4f"></i>Fehler</span><span><i style="background:#5ee07a"></i>in Ordnung</span><span><i style="background:#4da3ff"></i>Rückschwung</span><span><i style="background:#ffad33"></i>Abschwung</span></div>
+
+    <div class="card" style="margin-top:10px">
+      <h2 id="sumT">Ergebnis</h2>
+      <div id="sumS" class="mut"></div>
+      <div id="notes"></div>
+      <div id="faults"></div>
+      <details id="okBox"><summary id="okT">Ohne Befund</summary><div id="oks"></div></details>
+    </div>
+    <div class="card">
+      <h2>Messwerte</h2>
+      <table id="met"></table>
+    </div>
+    <div class="card">
+      <details><summary>Was die Beta nicht kann (Grenzen der Videoanalyse)</summary><ul class="tips" id="limits"></ul></details>
+    </div>
+    <button class="btn big" id="again">Neues Video analysieren</button>
+  </section>
+
+  <section class="card" id="histC" hidden>
+    <h2>Letzte Analysen</h2>
+    <div id="hist"></div>
+  </section>
+</main>
+<div id="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
