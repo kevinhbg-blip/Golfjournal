@@ -17,6 +17,8 @@ Reine HTML/JavaScript-App ohne Build-Schritt und ohne Server. Läuft direkt übe
 | `supabase-setup.sql` | Tabelle für Konto & Cloud-Speicher (einmal im Supabase SQL Editor ausführen) |
 | `supabase-feedback.sql` | Tabelle für Feedback, nur für den Administrator Kevspam lesbar (einmal ausführen) |
 | `supabase-coach.sql` | Trainer-Freigabe und Trainer-Übersicht (einmal ausführen) |
+| `supabase-kalender.sql` | Kalender-Sync mit dem iPhone (einmal ausführen) |
+| `supabase/functions/golf-kalender/index.ts` | Edge Function für den Kalender-Sync (einmal in Supabase anlegen) |
 
 ## Daten
 
@@ -71,3 +73,24 @@ Oben in der Analyse wählt man unter „Launchmonitor-Sessions“ aus, welche Se
 = abgewählte), und unter „Zielkorridor“ die Breite für Drives (Standard 30 m) und
 Transportschläge (Hölzer, Hybride, Eisen 3–9; leer = 10 % der Carry-Distanz) in `D.cor`.
 Danach richten sich Fairway-Quote, Miss-Tendenz und die Übersicht.
+
+## Kalender-Sync mit dem iPhone
+
+Kalender → „📱 Mit iPhone-Kalender verbinden“ (nur angemeldet).
+
+- **App → iPhone:** „Kalender-Abo einrichten“ erzeugt einen privaten Link. „Am iPhone abonnieren“ öffnet
+  ihn als `webcal://`-Abo. Alle geplanten Trainings (`D.p`, mit Serien und gelöschten Einzeltagen) stehen
+  dann im iPhone-Kalender „Golf-Training“ und aktualisieren sich von selbst. Am iPhone sind sie nur lesbar.
+  „Neuen Link erzeugen“ macht den alten Link ungültig.
+- **iPhone → App:** Einen iCloud-Kalender in der Kalender-App als „Öffentlicher Kalender“ freigeben, den
+  Link kopieren und in der App einfügen. Die Termine erscheinen grau im App-Kalender (nur lesend, Cache
+  in localStorage `golflog.v2.kc`, Abruf höchstens alle 15 Minuten oder per „Jetzt aktualisieren“).
+
+Einmalige Einrichtung in Supabase:
+
+1. `supabase-kalender.sql` im SQL Editor ausführen (Tabelle `golf_cal`: token, src je Benutzer).
+2. Edge Functions → „Deploy a new function“ → „Via Editor“, Name `golf-kalender`, Inhalt von
+   `supabase/functions/golf-kalender/index.ts` einfügen, „Deploy“.
+   Oder per CLI: `supabase functions deploy golf-kalender --no-verify-jwt`.
+3. In den Einstellungen der Funktion „Verify JWT with legacy secret“ ausschalten, weil die Kalender-App
+   am iPhone keinen Login mitschickt. Geschützt ist der Feed durch den geheimen Token im Link.
